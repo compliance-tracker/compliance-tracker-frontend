@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { ShieldCheck } from "lucide-react";
+import { Building2, CheckCircle2, ShieldCheck, XCircle } from "lucide-react";
 import { AddBusinessDialog } from "@/components/AddBusinessDialog";
 import { BusinessList } from "@/components/BusinessList";
 import { DeadlinesPanel } from "@/components/DeadlinesPanel";
 import { LoginForm } from "@/components/LoginForm";
+import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
@@ -51,9 +52,11 @@ function App() {
     return <LoginForm onAuthenticated={() => setIsAuthenticated(true)} />;
   }
 
+  const gstRegisteredCount = businesses.filter((b) => b.gstRegistered).length;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/40 to-background">
-      <div className="mx-auto max-w-4xl p-8 space-y-8">
+      <div className="mx-auto max-w-6xl p-8 space-y-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
@@ -80,7 +83,13 @@ function App() {
           </p>
         )}
 
-        <div className="space-y-6">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <StatCard label="Businesses tracked" value={businesses.length} icon={Building2} />
+          <StatCard label="GST-registered" value={gstRegisteredCount} icon={CheckCircle2} />
+          <StatCard label="Not GST-registered" value={businesses.length - gstRegisteredCount} icon={XCircle} />
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-2">
           <BusinessList businesses={businesses} selectedId={selected?.id ?? null} onSelect={setSelected} />
           <DeadlinesPanel business={selected} />
         </div>
