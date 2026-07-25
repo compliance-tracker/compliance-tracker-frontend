@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AddBusinessDialog } from "@/components/AddBusinessDialog";
 import { BusinessList } from "@/components/BusinessList";
+import { DeadlinesPanel } from "@/components/DeadlinesPanel";
 import { api } from "@/lib/api";
 import type { Business } from "@/lib/types";
 
@@ -39,6 +40,7 @@ function App() {
       )}
 
       <BusinessList businesses={businesses} selectedId={selected?.id ?? null} onSelect={setSelected} />
+      <DeadlinesPanel business={selected} />
     </div>
   );
 }
