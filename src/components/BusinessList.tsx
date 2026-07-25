@@ -12,7 +12,7 @@ interface BusinessListProps {
 
 export function BusinessList({ businesses, selectedId, onSelect }: BusinessListProps) {
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle>Businesses</CardTitle>
       </CardHeader>
@@ -34,8 +34,8 @@ export function BusinessList({ businesses, selectedId, onSelect }: BusinessListP
                   key={b.id}
                   onClick={() => onSelect(b)}
                   className={cn(
-                    "cursor-pointer",
-                    selectedId === b.id && "bg-muted"
+                    "cursor-pointer transition-colors hover:bg-muted/50",
+                    selectedId === b.id && "bg-primary/10 hover:bg-primary/15"
                   )}
                 >
                   <TableCell className="font-medium">{b.name}</TableCell>

@@ -34,7 +34,7 @@ export function DeadlinesPanel({ business }: DeadlinesPanelProps) {
 
   if (!business) {
     return (
-      <Card>
+      <Card className="shadow-sm">
         <CardContent className="pt-6 text-sm text-muted-foreground">
           Select a business to see its upcoming compliance deadlines.
         </CardContent>
@@ -43,7 +43,7 @@ export function DeadlinesPanel({ business }: DeadlinesPanelProps) {
   }
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle>{business.name} — upcoming deadlines</CardTitle>
       </CardHeader>

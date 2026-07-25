@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -41,17 +42,24 @@ export function LoginForm({ onAuthenticated }: LoginFormProps) {
   }
 
   return (
-    <div className="mx-auto max-w-sm p-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>{mode === "login" ? "Log in" : "Create an account"}</CardTitle>
-          <CardDescription>
-            {mode === "login"
-              ? "Access your businesses and their compliance deadlines."
-              : "Track your business's compliance deadlines."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-muted/40 to-background p-8">
+      <div className="w-full max-w-sm space-y-6">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+            <ShieldCheck className="h-7 w-7" />
+          </div>
+          <h1 className="text-xl font-semibold tracking-tight">Compliance Tracker</h1>
+        </div>
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>{mode === "login" ? "Log in" : "Create an account"}</CardTitle>
+            <CardDescription>
+              {mode === "login"
+                ? "Access your businesses and their compliance deadlines."
+                : "Track your business's compliance deadlines."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
@@ -94,6 +102,7 @@ export function LoginForm({ onAuthenticated }: LoginFormProps) {
           </form>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

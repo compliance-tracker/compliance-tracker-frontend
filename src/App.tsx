@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ShieldCheck } from "lucide-react";
 import { AddBusinessDialog } from "@/components/AddBusinessDialog";
 import { BusinessList } from "@/components/BusinessList";
 import { DeadlinesPanel } from "@/components/DeadlinesPanel";
@@ -51,30 +52,39 @@ function App() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Compliance Tracker</h1>
-          <p className="text-sm text-muted-foreground">
-            Reminder/tracking tool, not compliance advice — always verify against the official source.
-          </p>
+    <div className="min-h-screen bg-gradient-to-b from-muted/40 to-background">
+      <div className="mx-auto max-w-4xl p-8 space-y-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+              <ShieldCheck className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">Compliance Tracker</h1>
+              <p className="text-sm text-muted-foreground">
+                Reminder/tracking tool, not compliance advice — always verify against the official source.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <AddBusinessDialog onCreated={handleCreated} />
+            <Button variant="outline" onClick={handleLogout}>
+              Log out
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <AddBusinessDialog onCreated={handleCreated} />
-          <Button variant="outline" onClick={handleLogout}>
-            Log out
-          </Button>
+
+        {error && (
+          <p className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+            {error}
+          </p>
+        )}
+
+        <div className="space-y-6">
+          <BusinessList businesses={businesses} selectedId={selected?.id ?? null} onSelect={setSelected} />
+          <DeadlinesPanel business={selected} />
         </div>
       </div>
-
-      {error && (
-        <p className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {error}
-        </p>
-      )}
-
-      <BusinessList businesses={businesses} selectedId={selected?.id ?? null} onSelect={setSelected} />
-      <DeadlinesPanel business={selected} />
     </div>
   );
 }
