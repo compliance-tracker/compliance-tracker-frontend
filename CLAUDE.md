@@ -32,9 +32,9 @@ experience) — explain framework concepts, not just Java/Spring ones.
 
 ## Project status
 
-Issues #1 (scaffold), #2 (business list + add form), #3 (deadlines view), #5 (CI workflow) are closed and merged.
+Issues #1 (scaffold), #2 (business list + add form), #3 (deadlines view), #5 (CI workflow), #8 (login/register UI), #13 (visual polish/dashboard layout) are all closed and merged (PR #12). Backend PR #23 (auth) is merged too — both `main`s now work together end to end: register, add a business, see real deadlines.
 
-**#8 (login/register UI) and #13 (visual polish/dashboard layout) are both done in code, verified live, but PR #12 is still open** — waiting on review/merge, don't say these are "closed" until that PR actually merges. Depends on backend PR #23 (auth) merging too, for `main` to actually work end to end.
+The login page went through three passes before it stopped feeling "empty"/generic: (1) a bare centered card → (2) split layout with a branding/value-prop panel → (3) that panel's flat solid-color fill became a gradient with decorative blurred shapes plus `justify-between` spacing so content fills the full height. Worth remembering that a single "add some color" pass often isn't enough — layout/spacing and depth matter as much as color choice.
 
 Repo GitHub org/URLs were stale in this file and README.md for a while after the `Chrainx` → `compliance-tracker` org transfer — fixed, but worth double-checking any hardcoded repo URLs if this happens again.
 
