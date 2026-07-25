@@ -1,8 +1,9 @@
 # Compliance Tracker — Frontend
 
-Frontend for the [Compliance Tracker](https://github.com/Chrainx/compliance-tracker) backend —
-a compliance deadline tracker for Singapore SMEs. This is the browser UI: create businesses and
-view their computed compliance deadlines (ACRA Annual Return, GST F5, work pass renewals).
+Frontend for the [Compliance Tracker](https://github.com/compliance-tracker/compliance-tracker)
+backend — a compliance deadline tracker for Singapore SMEs. This is the browser UI: log in,
+create businesses, and view their computed compliance deadlines (ACRA Annual Return, GST F5,
+work pass renewals).
 
 ## Tech stack
 
@@ -12,15 +13,17 @@ view their computed compliance deadlines (ACRA Annual Return, GST F5, work pass 
 | Build tool | Vite                                        |
 | Styling    | Tailwind CSS v4                             |
 | Components | shadcn/ui                                   |
+| Auth       | JWT stored in `localStorage`, attached to every API request |
 
-No routing/state library — the app is small enough (3 screens' worth of functionality on one
-page) that React's built-in `useState`/`useEffect` is sufficient; would revisit if the app grows.
+No routing/state library — the app is small enough (login + one main page) that React's
+built-in `useState`/`useEffect` is sufficient; would revisit if the app grows.
 
 ## Running locally
 
 Requires the backend running on `http://localhost:8081` (see the
-[backend README](https://github.com/Chrainx/compliance-tracker/blob/main/README.md)) — this app
-has no data of its own, everything comes from that API.
+[backend README](https://github.com/compliance-tracker/compliance-tracker/blob/main/README.md))
+— this app has no data of its own, everything comes from that API. The backend now requires a
+real account — register one via the login screen the first time.
 
 ```bash
 npm install
@@ -33,14 +36,20 @@ Opens on `http://localhost:5173` by default.
 ## Project structure
 
 - `src/lib/types.ts` — TypeScript types mirroring the backend's JSON shapes exactly
-  (`Business`, `Deadline`) — no transformation layer between the two.
+  (`Business`, `Deadline`, `Credentials`, `AuthResponse`) — no transformation layer between the two.
+- `src/lib/auth.ts` — stores/retrieves the JWT in `localStorage` (survives a refresh/new tab,
+  unlike `sessionStorage`).
 - `src/lib/api.ts` — thin fetch wrapper against the backend, base URL from
-  `VITE_API_BASE_URL`.
-- `src/components/` — `BusinessList`, `AddBusinessDialog`, `DeadlinesPanel`.
+  `VITE_API_BASE_URL`. Attaches the stored token (if any) to every request automatically.
+- `src/components/` — `LoginForm` (login/register, toggles between the two), `BusinessList`,
+  `AddBusinessDialog`, `DeadlinesPanel`.
 - `src/components/ui/` — shadcn/ui primitives (owned code, not an npm dependency — copied in
   via the shadcn CLI, edit freely).
 
 ## Status
 
-Early — see [issues on the frontend repo] for current progress. Talks to the real backend API
-directly; no auth, no multi-tenancy yet (matches the backend's current single-tenant state).
+The core flow is fully working: register/log in, add a business, see its real deadlines. Auth
+is enforced by the backend (JWT, every business scoped to its own owner) — a fresh account
+starts with an empty list, not everyone else's data. See
+[issues on the frontend repo](https://github.com/compliance-tracker/compliance-tracker-frontend/issues)
+for current progress.

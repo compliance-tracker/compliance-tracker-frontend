@@ -12,6 +12,7 @@ experience) — explain framework concepts, not just Java/Spring ones.
 - **Components:** shadcn/ui — components are copied into `src/components/ui/` via its CLI, not an npm dependency; edit them freely, they're owned code
 - No routing library, no state management library — the app is small enough that `useState`/`useEffect` is enough; revisit if it grows
 - Calls the backend directly (`src/lib/api.ts`), no BFF/proxy layer
+- **Auth:** JWT stored in `localStorage` (`src/lib/auth.ts`), attached to every request in `api.ts`'s `request()` helper — no auth context/provider, just a plain module with get/set/clear functions
 
 ## Current environment
 
@@ -25,11 +26,12 @@ experience) — explain framework concepts, not just Java/Spring ones.
 - **shadcn CLI is a different generation than older tutorials describe** — this version uses `-t vite -b radix -p nova` flags (template/base/preset), not the older simpler prompts. `npx shadcn@latest init --help` to see current options if this breaks again on an upgrade.
 - **TypeScript's `baseUrl` compiler option is deprecated** in newer TS versions — use `paths` alone (no `baseUrl`) for the `@/*` import alias in `tsconfig.json`/`tsconfig.app.json`.
 - **Jest/Vitest not set up yet** — there is currently zero test coverage on this project (see issue #9). Don't assume test infra exists.
+- **The backend now requires auth on every business endpoint** (backend #19) — a request with no/invalid token gets a 401. `api.ts`'s `request()` treats a 401 from `getBusinesses` specially in `App.tsx` (clears the stored token, bounces back to the login screen) rather than showing a generic "can't reach backend" error, since those are two different problems.
 
 ## Project status
 
-Issues #1 (scaffold), #2 (business list + add form), #5 (CI workflow) are closed and merged. **#3 (deadlines view for a selected business) is the current in-progress item** — the `DeadlinesPanel` component already exists as local WIP but isn't wired into `App.tsx` or turned into its own PR yet.
+Issues #1 (scaffold), #2 (business list + add form), #3 (deadlines view), #5 (CI workflow), #8 (login/register UI) are closed and merged. Repo GitHub org/URLs were stale in this file and README.md for a while after the `Chrainx` → `compliance-tracker` org transfer — fixed, but worth double-checking any hardcoded repo URLs if this happens again.
 
-Open: #3 (deadlines view), #7 (deploy — depends on backend #5), #8 (login/auth UI — depends on backend #19), #9 (test suite — currently zero tests).
+Open: #7 (deploy — depends on backend #5), #9 (test suite — currently zero tests).
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.
