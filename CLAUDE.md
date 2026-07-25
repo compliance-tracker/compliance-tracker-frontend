@@ -27,11 +27,17 @@ experience) — explain framework concepts, not just Java/Spring ones.
 - **TypeScript's `baseUrl` compiler option is deprecated** in newer TS versions — use `paths` alone (no `baseUrl`) for the `@/*` import alias in `tsconfig.json`/`tsconfig.app.json`.
 - **Jest/Vitest not set up yet** — there is currently zero test coverage on this project (see issue #9). Don't assume test infra exists.
 - **The backend now requires auth on every business endpoint** (backend #19) — a request with no/invalid token gets a 401. `api.ts`'s `request()` treats a 401 from `getBusinesses` specially in `App.tsx` (clears the stored token, bounces back to the login screen) rather than showing a generic "can't reach backend" error, since those are two different problems.
+- **Visual polish alone didn't fix "feels empty"** — a color accent + shadows pass still read as sparse; the actual fix was structural (stat tiles, wider container, side-by-side grid instead of a stacked single column). Layout/information-density matters more than color for "does this look like a real product."
+- **Labels**: added `area:ui`/`area:auth`/`area:infra`/`area:testing` to this repo, matching the backend's `area:*` convention (previously every issue just had the generic `enhancement` label with no further categorization).
 
 ## Project status
 
-Issues #1 (scaffold), #2 (business list + add form), #3 (deadlines view), #5 (CI workflow), #8 (login/register UI) are closed and merged. Repo GitHub org/URLs were stale in this file and README.md for a while after the `Chrainx` → `compliance-tracker` org transfer — fixed, but worth double-checking any hardcoded repo URLs if this happens again.
+Issues #1 (scaffold), #2 (business list + add form), #3 (deadlines view), #5 (CI workflow) are closed and merged.
 
-Open: #7 (deploy — depends on backend #5), #9 (test suite — currently zero tests).
+**#8 (login/register UI) and #13 (visual polish/dashboard layout) are both done in code, verified live, but PR #12 is still open** — waiting on review/merge, don't say these are "closed" until that PR actually merges. Depends on backend PR #23 (auth) merging too, for `main` to actually work end to end.
+
+Repo GitHub org/URLs were stale in this file and README.md for a while after the `Chrainx` → `compliance-tracker` org transfer — fixed, but worth double-checking any hardcoded repo URLs if this happens again.
+
+Open (not started): #7 (deploy — depends on backend #5), #9 (test suite — currently zero tests).
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.
