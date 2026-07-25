@@ -63,37 +63,49 @@ export function LoginForm({ onAuthenticated }: LoginFormProps) {
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* Branding/value-prop panel - hidden on small screens, since there's no room for it
           alongside the form without both feeling cramped. */}
-      <div className="hidden flex-col justify-center gap-10 bg-primary p-12 text-primary-foreground lg:flex">
-        <div className="flex items-center gap-3">
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-[oklch(0.32_0.12_264)] via-primary to-[oklch(0.5_0.2_280)] p-12 text-primary-foreground lg:flex">
+        {/* Purely decorative blurred shapes - texture/depth so the panel doesn't read as a
+            flat single-color fill. pointer-events-none + aria-hidden since they carry no
+            content, just visual interest. */}
+        <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-black/10 blur-3xl" />
+
+        <div className="relative flex items-center gap-3">
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-foreground/15">
             <ShieldCheck className="h-6 w-6" />
           </div>
           <span className="text-xl font-semibold tracking-tight">Compliance Tracker</span>
         </div>
 
-        <div className="max-w-md space-y-3">
-          <h2 className="text-3xl font-semibold tracking-tight">
-            Never miss a compliance deadline again.
-          </h2>
-          <p className="text-primary-foreground/80">
-            A reminder/tracking tool for Singapore SMEs — not compliance advice. Always verify
-            against the official source.
-          </p>
+        <div className="relative max-w-md space-y-8">
+          <div className="space-y-3">
+            <h2 className="text-3xl font-semibold tracking-tight">
+              Never miss a compliance deadline again.
+            </h2>
+            <p className="text-primary-foreground/80">
+              A reminder/tracking tool for Singapore SMEs — not compliance advice. Always verify
+              against the official source.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            {VALUE_PROPS.map(({ icon: Icon, title, description }) => (
+              <div key={title} className="flex gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/15">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-medium">{title}</p>
+                  <p className="text-sm text-primary-foreground/70">{description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="max-w-md space-y-6">
-          {VALUE_PROPS.map(({ icon: Icon, title, description }) => (
-            <div key={title} className="flex gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-foreground/15">
-                <Icon className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="font-medium">{title}</p>
-                <p className="text-sm text-primary-foreground/70">{description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
+        <p className="relative text-sm text-primary-foreground/60">
+          Built for Singapore SMEs — deadline rules sourced directly from ACRA, IRAS, and MOM.
+        </p>
       </div>
 
       {/* Form panel */}
