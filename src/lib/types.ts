@@ -16,3 +16,13 @@ export interface Deadline {
   obligationType: ObligationType;
   dueDate: string;
 }
+
+// Mirrors com.chrainx.compliance_tracker.AuthRequest / AuthResponse
+export interface Credentials {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+}

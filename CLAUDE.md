@@ -12,6 +12,7 @@ experience) — explain framework concepts, not just Java/Spring ones.
 - **Components:** shadcn/ui — components are copied into `src/components/ui/` via its CLI, not an npm dependency; edit them freely, they're owned code
 - No routing library, no state management library — the app is small enough that `useState`/`useEffect` is enough; revisit if it grows
 - Calls the backend directly (`src/lib/api.ts`), no BFF/proxy layer
+- **Auth:** JWT stored in `localStorage` (`src/lib/auth.ts`), attached to every request in `api.ts`'s `request()` helper — no auth context/provider, just a plain module with get/set/clear functions
 
 ## Current environment
 
@@ -25,11 +26,18 @@ experience) — explain framework concepts, not just Java/Spring ones.
 - **shadcn CLI is a different generation than older tutorials describe** — this version uses `-t vite -b radix -p nova` flags (template/base/preset), not the older simpler prompts. `npx shadcn@latest init --help` to see current options if this breaks again on an upgrade.
 - **TypeScript's `baseUrl` compiler option is deprecated** in newer TS versions — use `paths` alone (no `baseUrl`) for the `@/*` import alias in `tsconfig.json`/`tsconfig.app.json`.
 - **Jest/Vitest not set up yet** — there is currently zero test coverage on this project (see issue #9). Don't assume test infra exists.
+- **The backend now requires auth on every business endpoint** (backend #19) — a request with no/invalid token gets a 401. `api.ts`'s `request()` treats a 401 from `getBusinesses` specially in `App.tsx` (clears the stored token, bounces back to the login screen) rather than showing a generic "can't reach backend" error, since those are two different problems.
+- **Visual polish alone didn't fix "feels empty"** — a color accent + shadows pass still read as sparse; the actual fix was structural (stat tiles, wider container, side-by-side grid instead of a stacked single column). Layout/information-density matters more than color for "does this look like a real product."
+- **Labels**: added `area:ui`/`area:auth`/`area:infra`/`area:testing` to this repo, matching the backend's `area:*` convention (previously every issue just had the generic `enhancement` label with no further categorization).
 
 ## Project status
 
-Issues #1 (scaffold), #2 (business list + add form), #5 (CI workflow) are closed and merged. **#3 (deadlines view for a selected business) is the current in-progress item** — the `DeadlinesPanel` component already exists as local WIP but isn't wired into `App.tsx` or turned into its own PR yet.
+Issues #1 (scaffold), #2 (business list + add form), #3 (deadlines view), #5 (CI workflow) are closed and merged.
 
-Open: #3 (deadlines view), #7 (deploy — depends on backend #5), #8 (login/auth UI — depends on backend #19), #9 (test suite — currently zero tests).
+**#8 (login/register UI) and #13 (visual polish/dashboard layout) are both done in code, verified live, but PR #12 is still open** — waiting on review/merge, don't say these are "closed" until that PR actually merges. Depends on backend PR #23 (auth) merging too, for `main` to actually work end to end.
+
+Repo GitHub org/URLs were stale in this file and README.md for a while after the `Chrainx` → `compliance-tracker` org transfer — fixed, but worth double-checking any hardcoded repo URLs if this happens again.
+
+Open (not started): #7 (deploy — depends on backend #5), #9 (test suite — currently zero tests).
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.
