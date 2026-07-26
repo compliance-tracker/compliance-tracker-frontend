@@ -18,6 +18,9 @@ function App() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [selected, setSelected] = useState<Business | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Bumped whenever a work pass is added/removed, so DeadlinesPanel knows to refetch even
+  // though `selected` itself hasn't changed (see DeadlinesPanel's refreshKey prop).
+  const [deadlinesRefreshKey, setDeadlinesRefreshKey] = useState(0);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -92,10 +95,13 @@ function App() {
 
         <div className="grid gap-6 lg:grid-cols-2">
           <BusinessList businesses={businesses} selectedId={selected?.id ?? null} onSelect={setSelected} />
-          <DeadlinesPanel business={selected} />
+          <DeadlinesPanel business={selected} refreshKey={deadlinesRefreshKey} />
         </div>
 
-        <WorkPassesPanel business={selected} />
+        <WorkPassesPanel
+          business={selected}
+          onWorkPassesChanged={() => setDeadlinesRefreshKey((k) => k + 1)}
+        />
       </div>
     </div>
   );

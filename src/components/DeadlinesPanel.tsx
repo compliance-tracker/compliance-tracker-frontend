@@ -37,9 +37,13 @@ function urgencyLabel(days: number): string {
 
 interface DeadlinesPanelProps {
   business: Business | null;
+  // Deadlines depend on the business's work passes too (WORK_PASS_RENEWAL, one per pass), but
+  // adding/removing a pass doesn't change the `business` object itself - bumping this from the
+  // parent after a work pass change is what tells this effect to refetch.
+  refreshKey?: number;
 }
 
-export function DeadlinesPanel({ business }: DeadlinesPanelProps) {
+export function DeadlinesPanel({ business, refreshKey }: DeadlinesPanelProps) {
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -54,7 +58,7 @@ export function DeadlinesPanel({ business }: DeadlinesPanelProps) {
       .getDeadlines(business.id)
       .then(setDeadlines)
       .finally(() => setLoading(false));
-  }, [business]);
+  }, [business, refreshKey]);
 
   if (!business) {
     return (
