@@ -43,16 +43,17 @@ Opens on `http://localhost:5173` by default.
   `VITE_API_BASE_URL`. Attaches the stored token (if any) to every request automatically.
 - `src/components/` — `LoginForm` (login/register, toggles between the two), `StatCard`
   (summary tiles), `BusinessList`, `AddBusinessDialog`, `DeadlinesPanel` (deadlines colored by
-  urgency: red ≤30 days, amber ≤90 days, neutral further out).
+  urgency: red ≤30 days, amber ≤90 days, neutral further out), `WorkPassesPanel` (view/add/remove
+  a selected business's employee work passes, driving the Employment Pass renewal deadlines).
 - `src/components/ui/` — shadcn/ui primitives (owned code, not an npm dependency — copied in
   via the shadcn CLI, edit freely).
 
 ## Status
 
-The core flow is fully working: register/log in, add a business, see its real deadlines. Auth
-is enforced by the backend (JWT, every business scoped to its own owner) — a fresh account
-starts with an empty list, not everyone else's data. Layout is a real dashboard (summary stat
-tiles, side-by-side business list + deadlines panel on wider screens, urgency-colored deadline
-badges), not just default component styling. See
+The core flow is fully working: register/log in, add a business, see its real deadlines,
+manage its employees' work passes. Auth is enforced by the backend (JWT, every business scoped
+to its own owner) — a fresh account starts with an empty list, not everyone else's data. Layout
+is a real dashboard (summary stat tiles, side-by-side business list + deadlines panel on wider
+screens, urgency-colored deadline badges), not just default component styling. See
 [issues on the frontend repo](https://github.com/compliance-tracker/compliance-tracker-frontend/issues)
 for current progress.

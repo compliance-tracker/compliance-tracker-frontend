@@ -1,4 +1,4 @@
-import type { Business, NewBusiness, Deadline, Credentials, AuthResponse } from "./types";
+import type { Business, NewBusiness, Deadline, Credentials, AuthResponse, WorkPass, NewWorkPass } from "./types";
 import { auth } from "./auth";
 
 // VITE_API_BASE_URL lets this point at a different backend later (e.g. once deployed to real
@@ -21,6 +21,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     throw new Error(`${options?.method ?? "GET"} ${path} failed: ${response.status}`);
+  }
+
+  // DELETE responses are 204 No Content - no body to parse, and response.json() would throw
+  // on the empty string. Every other call here does expect a JSON body.
+  if (response.status === 204) {
+    return undefined as T;
   }
 
   return response.json() as Promise<T>;
@@ -49,4 +55,18 @@ export const api = {
 
   getDeadlines: (businessId: number) =>
     request<Deadline[]>(`/api/businesses/${businessId}/deadlines`),
+
+  getWorkPasses: (businessId: number) =>
+    request<WorkPass[]>(`/api/businesses/${businessId}/work-passes`),
+
+  createWorkPass: (businessId: number, workPass: NewWorkPass) =>
+    request<WorkPass>(`/api/businesses/${businessId}/work-passes`, {
+      method: "POST",
+      body: JSON.stringify(workPass),
+    }),
+
+  deleteWorkPass: (businessId: number, workPassId: number) =>
+    request<void>(`/api/businesses/${businessId}/work-passes/${workPassId}`, {
+      method: "DELETE",
+    }),
 };

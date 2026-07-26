@@ -26,3 +26,13 @@ export interface Credentials {
 export interface AuthResponse {
   token: string;
 }
+
+// Mirrors com.chrainx.compliance_tracker.WorkPass (backend) - "business" is @JsonIgnore'd
+// server-side (the caller already knows the business id from the URL), so it never appears here.
+export interface WorkPass {
+  id: number;
+  employeeName: string;
+  expiryDate: string; // ISO date, e.g. "2026-11-01"
+}
+
+export type NewWorkPass = Omit<WorkPass, "id">;
