@@ -5,6 +5,7 @@ import { BusinessList } from "@/components/BusinessList";
 import { DeadlinesPanel } from "@/components/DeadlinesPanel";
 import { LoginForm } from "@/components/LoginForm";
 import { StatCard } from "@/components/StatCard";
+import { WorkPassesPanel } from "@/components/WorkPassesPanel";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { auth } from "@/lib/auth";
@@ -93,6 +94,8 @@ function App() {
           <BusinessList businesses={businesses} selectedId={selected?.id ?? null} onSelect={setSelected} />
           <DeadlinesPanel business={selected} />
         </div>
+
+        <WorkPassesPanel business={selected} />
       </div>
     </div>
   );

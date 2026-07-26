@@ -27,6 +27,7 @@ experience) — explain framework concepts, not just Java/Spring ones.
 - **TypeScript's `baseUrl` compiler option is deprecated** in newer TS versions — use `paths` alone (no `baseUrl`) for the `@/*` import alias in `tsconfig.json`/`tsconfig.app.json`.
 - **Jest/Vitest not set up yet** — there is currently zero test coverage on this project (see issue #9). Don't assume test infra exists.
 - **The backend now requires auth on every business endpoint** (backend #19) — a request with no/invalid token gets a 401. `api.ts`'s `request()` treats a 401 from `getBusinesses` specially in `App.tsx` (clears the stored token, bounces back to the login screen) rather than showing a generic "can't reach backend" error, since those are two different problems.
+- **`request<T>()` unconditionally called `response.json()`** — worked fine until the work pass DELETE endpoint (`204 No Content`, empty body) came along, which threw a `SyntaxError` parsing nothing. Fixed by short-circuiting to `undefined` on `response.status === 204` before parsing. Watch for this on any future DELETE endpoint.
 - **Visual polish alone didn't fix "feels empty"** — a color accent + shadows pass still read as sparse; the actual fix was structural (stat tiles, wider container, side-by-side grid instead of a stacked single column). Layout/information-density matters more than color for "does this look like a real product."
 - **Labels**: added `area:ui`/`area:auth`/`area:infra`/`area:testing` to this repo, matching the backend's `area:*` convention (previously every issue just had the generic `enhancement` label with no further categorization).
 
@@ -37,6 +38,8 @@ Issues #1 (scaffold), #2 (business list + add form), #3 (deadlines view), #5 (CI
 The login page went through three passes before it stopped feeling "empty"/generic: (1) a bare centered card → (2) split layout with a branding/value-prop panel → (3) that panel's flat solid-color fill became a gradient with decorative blurred shapes plus `justify-between` spacing so content fills the full height. Worth remembering that a single "add some color" pass often isn't enough — layout/spacing and depth matter as much as color choice.
 
 Repo GitHub org/URLs were stale in this file and README.md for a while after the `Chrainx` → `compliance-tracker` org transfer — fixed, but worth double-checking any hardcoded repo URLs if this happens again.
+
+#15 (work pass management UI — `WorkPassesPanel.tsx`, depends on backend #24) is done, verified live via Playwright (add/list/delete a work pass, no console errors).
 
 Open (not started): #7 (deploy — depends on backend #5), #9 (test suite — currently zero tests).
 
