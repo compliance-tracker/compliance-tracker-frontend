@@ -19,9 +19,13 @@ import type { Business, WorkPass } from "@/lib/types";
 
 interface WorkPassesPanelProps {
   business: Business | null;
+  // Adding/removing a work pass changes what DeadlinesPanel should show (WORK_PASS_RENEWAL,
+  // one deadline per pass) - this tells the parent to trigger that refetch, since DeadlinesPanel
+  // has no other way to know a pass changed (the business object itself doesn't change).
+  onWorkPassesChanged?: () => void;
 }
 
-export function WorkPassesPanel({ business }: WorkPassesPanelProps) {
+export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPanelProps) {
   const [workPasses, setWorkPasses] = useState<WorkPass[]>([]);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -53,6 +57,7 @@ export function WorkPassesPanel({ business }: WorkPassesPanelProps) {
     try {
       const created = await api.createWorkPass(business.id, { employeeName, expiryDate });
       setWorkPasses((prev) => [...prev, created]);
+      onWorkPassesChanged?.();
       setDialogOpen(false);
       setEmployeeName("");
       setExpiryDate("");
@@ -69,6 +74,7 @@ export function WorkPassesPanel({ business }: WorkPassesPanelProps) {
     // since a delete has nothing meaningful to show while pending.
     setWorkPasses((prev) => prev.filter((p) => p.id !== workPassId));
     await api.deleteWorkPass(business.id, workPassId);
+    onWorkPassesChanged?.();
   }
 
   if (!business) {
