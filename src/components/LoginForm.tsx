@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Bell, CalendarClock, FileCheck2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
@@ -118,15 +118,40 @@ export function LoginForm({ onAuthenticated }: LoginFormProps) {
             <h1 className="text-xl font-semibold tracking-tight">Compliance Tracker</h1>
           </div>
           <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle>{mode === "login" ? "Log in" : "Create an account"}</CardTitle>
-              <CardDescription>
-                {mode === "login"
-                  ? "Access your businesses and their compliance deadlines."
-                  : "Track your business's compliance deadlines."}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-5">
+              {/* Segmented mode toggle - two buttons in one pill, active one lifted with the
+                  card's own background/shadow. Replaces the old plain-text link toggle below
+                  the form; a two-way switch reads more clearly as "pick one of two modes" than
+                  a single line of text that changes meaning depending on which mode you're in. */}
+              <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+                {(["login", "register"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    className={
+                      m === mode
+                        ? "rounded-md bg-card py-2 text-sm font-semibold shadow-sm"
+                        : "rounded-md py-2 text-sm font-semibold text-muted-foreground"
+                    }
+                    onClick={() => {
+                      setMode(m);
+                      setError(null);
+                    }}
+                  >
+                    {m === "login" ? "Log in" : "Sign up"}
+                  </button>
+                ))}
+              </div>
+
+              <div>
+                <CardTitle>{mode === "login" ? "Welcome back" : "Create an account"}</CardTitle>
+                <CardDescription>
+                  {mode === "login"
+                    ? "Access your businesses and their compliance deadlines."
+                    : "Track your business's compliance deadlines."}
+                </CardDescription>
+              </div>
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
@@ -155,17 +180,6 @@ export function LoginForm({ onAuthenticated }: LoginFormProps) {
                 <Button type="submit" className="w-full" disabled={submitting}>
                   {submitting ? "Please wait..." : mode === "login" ? "Log in" : "Register"}
                 </Button>
-
-                <button
-                  type="button"
-                  className="w-full text-center text-sm text-muted-foreground hover:underline"
-                  onClick={() => {
-                    setMode(mode === "login" ? "register" : "login");
-                    setError(null);
-                  }}
-                >
-                  {mode === "login" ? "Need an account? Register" : "Already have an account? Log in"}
-                </button>
               </form>
             </CardContent>
           </Card>

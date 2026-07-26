@@ -44,7 +44,8 @@ Opens on `http://localhost:5173` by default.
 - `src/components/` — `LoginForm` (login/register, toggles between the two), `StatCard`
   (summary tiles), `BusinessList`, `AddBusinessDialog`, `DeadlinesPanel` (deadlines colored by
   urgency: red ≤30 days, amber ≤90 days, neutral further out), `WorkPassesPanel` (view/add/remove
-  a selected business's employee work passes, driving the Employment Pass renewal deadlines).
+  a selected business's employee work passes, driving the Employment Pass renewal deadlines,
+  same urgency-badge convention as `DeadlinesPanel` — shared logic lives in `src/lib/urgency.ts`).
 - `src/components/ui/` — shadcn/ui primitives (owned code, not an npm dependency — copied in
   via the shadcn CLI, edit freely).
 

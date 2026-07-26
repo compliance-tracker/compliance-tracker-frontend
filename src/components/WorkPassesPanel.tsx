@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -15,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
+import { daysUntil, urgencyClasses, urgencyLabel } from "@/lib/urgency";
 import type { Business, WorkPass } from "@/lib/types";
 
 interface WorkPassesPanelProps {
@@ -154,14 +157,20 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
               <TableRow>
                 <TableHead>Employee</TableHead>
                 <TableHead>Expiry date</TableHead>
+                <TableHead>Renewal</TableHead>
                 <TableHead className="text-right">Remove</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {workPasses.map((p) => (
+              {workPasses.map((p) => {
+                const days = daysUntil(p.expiryDate);
+                return (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.employeeName}</TableCell>
                   <TableCell>{p.expiryDate}</TableCell>
+                  <TableCell>
+                    <Badge className={cn(urgencyClasses(days))}>{urgencyLabel(days)}</Badge>
+                  </TableCell>
                   <TableCell className="text-right">
                     <Button
                       size="icon-sm"
@@ -173,7 +182,8 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
                     </Button>
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         )}
