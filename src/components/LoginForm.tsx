@@ -9,6 +9,9 @@ import { auth } from "@/lib/auth";
 
 interface LoginFormProps {
   onAuthenticated: () => void;
+  // Set when the user got bounced here by an expired session (issue #17), rather than choosing
+  // to log out - explains the unexpected redirect instead of silently dropping them back here.
+  message?: string | null;
 }
 
 const VALUE_PROPS = [
@@ -29,7 +32,7 @@ const VALUE_PROPS = [
   },
 ];
 
-export function LoginForm({ onAuthenticated }: LoginFormProps) {
+export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,7 +49,7 @@ export function LoginForm({ onAuthenticated }: LoginFormProps) {
         ? await api.login({ email, password })
         : await api.register({ email, password });
 
-      auth.setToken(response.token);
+      auth.setTokens(response.token, response.refreshToken);
       onAuthenticated();
     } catch {
       setError(
@@ -117,6 +120,11 @@ export function LoginForm({ onAuthenticated }: LoginFormProps) {
             </div>
             <h1 className="text-xl font-semibold tracking-tight">Compliance Tracker</h1>
           </div>
+          {message && (
+            <p className="rounded-md border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
+              {message}
+            </p>
+          )}
           <Card className="shadow-sm">
             <CardContent className="space-y-5">
               {/* Segmented mode toggle - two buttons in one pill, active one lifted with the

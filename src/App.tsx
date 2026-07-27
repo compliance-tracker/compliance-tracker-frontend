@@ -7,7 +7,7 @@ import { LoginForm } from "@/components/LoginForm";
 import { StatCard } from "@/components/StatCard";
 import { WorkPassesPanel } from "@/components/WorkPassesPanel";
 import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api";
+import { api, registerSessionExpiredHandler } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import type { Business } from "@/lib/types";
 
@@ -18,9 +18,24 @@ function App() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [selected, setSelected] = useState<Business | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Set when a request comes back 401 and a silent refresh (backend issue #26) fails too - shown
+  // on the login screen so the redirect there is explained, not just an unexplained jump back
+  // mid-session (issue #17).
+  const [sessionMessage, setSessionMessage] = useState<string | null>(null);
   // Bumped whenever a work pass is added/removed, so DeadlinesPanel knows to refetch even
   // though `selected` itself hasn't changed (see DeadlinesPanel's refreshKey prop).
   const [deadlinesRefreshKey, setDeadlinesRefreshKey] = useState(0);
+
+  // api.ts's request() calls this from wherever a 401 turns up - any authenticated call, not
+  // just the initial business list fetch - once refreshing the access token has already failed
+  // too. Registered once; api.ts holds a plain module-level reference rather than this app
+  // reaching for a full auth context/provider for something used in exactly one place.
+  useEffect(() => {
+    registerSessionExpiredHandler(() => {
+      setIsAuthenticated(false);
+      setSessionMessage("Your session expired. Please log in again.");
+    });
+  }, []);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -29,13 +44,11 @@ function App() {
       .getBusinesses()
       .then(setBusinesses)
       .catch((err: Error) => {
-        // A 401 here means the token is invalid/expired (not just "backend is down") -
-        // clearing it and bouncing back to the login screen, rather than showing a
-        // confusing "could not reach backend" message for what's actually a logged-out state.
-        if (err.message.includes("401")) {
-          auth.clearToken();
-          setIsAuthenticated(false);
-        } else {
+        // A 401 here already went through request()'s own refresh-then-give-up handling, which
+        // already cleared the token and set the session-expired message above - nothing further
+        // to do for that case. Anything else (network error, backend down) is a different,
+        // separately-shown problem.
+        if (!err.message.includes("401")) {
           setError("Could not reach the backend. Is it running on port 8081?");
         }
       });
@@ -74,10 +87,19 @@ function App() {
     setIsAuthenticated(false);
     setBusinesses([]);
     setSelected(null);
+    setSessionMessage(null);
   }
 
   if (!isAuthenticated) {
-    return <LoginForm onAuthenticated={() => setIsAuthenticated(true)} />;
+    return (
+      <LoginForm
+        onAuthenticated={() => {
+          setIsAuthenticated(true);
+          setSessionMessage(null);
+        }}
+        message={sessionMessage}
+      />
+    );
   }
 
   const gstRegisteredCount = businesses.filter((b) => b.gstRegistered).length;

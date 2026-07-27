@@ -13,7 +13,7 @@ work pass renewals).
 | Build tool | Vite                                        |
 | Styling    | Tailwind CSS v4                             |
 | Components | shadcn/ui                                   |
-| Auth       | JWT stored in `localStorage`, attached to every API request |
+| Auth       | JWT (access + refresh pair) stored in `localStorage`, access token attached to every API request |
 
 No routing/state library — the app is small enough (login + one main page) that React's
 built-in `useState`/`useEffect` is sufficient; would revisit if the app grows.
@@ -46,10 +46,13 @@ for watch mode during development.
 
 - `src/lib/types.ts` — TypeScript types mirroring the backend's JSON shapes exactly
   (`Business`, `Deadline`, `Credentials`, `AuthResponse`) — no transformation layer between the two.
-- `src/lib/auth.ts` — stores/retrieves the JWT in `localStorage` (survives a refresh/new tab,
-  unlike `sessionStorage`).
+- `src/lib/auth.ts` — stores/retrieves both the access and refresh JWTs in `localStorage`
+  (survives a refresh/new tab, unlike `sessionStorage`).
 - `src/lib/api.ts` — thin fetch wrapper against the backend, base URL from
-  `VITE_API_BASE_URL`. Attaches the stored token (if any) to every request automatically.
+  `VITE_API_BASE_URL`. Attaches the stored access token (if any) to every request automatically.
+  On a `401`, transparently exchanges the refresh token for a new pair and retries once before
+  giving up — a real session only actually ends (bounced to the login screen with an explanation)
+  if that refresh fails too, not on the access token's first expiry.
 - `src/components/` — `LoginForm` (login/register, toggles between the two), `StatCard`
   (summary tiles), `BusinessList` (with `EditBusinessDialog`/`DeleteBusinessDialog` actions per
   row), `AddBusinessDialog`, `DeadlinesPanel` (deadlines colored by

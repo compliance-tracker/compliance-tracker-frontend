@@ -25,6 +25,7 @@ export interface Credentials {
 
 export interface AuthResponse {
   token: string;
+  refreshToken: string;
 }
 
 // Mirrors com.chrainx.compliance_tracker.WorkPass (backend) - "business" is @JsonIgnore'd

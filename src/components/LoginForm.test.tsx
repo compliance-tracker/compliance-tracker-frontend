@@ -60,8 +60,8 @@ describe("LoginForm", () => {
     expect(screen.getByText("Welcome back")).toBeInTheDocument();
   });
 
-  it("on successful login, stores the token and calls onAuthenticated", async () => {
-    vi.mocked(api.login).mockResolvedValue({ token: "a-real-token" });
+  it("on successful login, stores both tokens and calls onAuthenticated", async () => {
+    vi.mocked(api.login).mockResolvedValue({ token: "a-real-token", refreshToken: "a-real-refresh-token" });
     const onAuthenticated = vi.fn();
     const user = userEvent.setup();
     render(<LoginForm onAuthenticated={onAuthenticated} />);
@@ -72,6 +72,7 @@ describe("LoginForm", () => {
 
     expect(api.login).toHaveBeenCalledWith({ email: "owner@example.com", password: "correct-password" });
     expect(auth.getToken()).toBe("a-real-token");
+    expect(auth.getRefreshToken()).toBe("a-real-refresh-token");
     expect(onAuthenticated).toHaveBeenCalledOnce();
   });
 
@@ -91,7 +92,7 @@ describe("LoginForm", () => {
   });
 
   it("on successful registration, calls api.register (not api.login)", async () => {
-    vi.mocked(api.register).mockResolvedValue({ token: "a-new-token" });
+    vi.mocked(api.register).mockResolvedValue({ token: "a-new-token", refreshToken: "a-new-refresh-token" });
     const onAuthenticated = vi.fn();
     const user = userEvent.setup();
     render(<LoginForm onAuthenticated={onAuthenticated} />);
@@ -104,5 +105,13 @@ describe("LoginForm", () => {
     expect(api.register).toHaveBeenCalledWith({ email: "new@example.com", password: "a-new-password" });
     expect(api.login).not.toHaveBeenCalled();
     expect(onAuthenticated).toHaveBeenCalledOnce();
+  });
+
+  it("shows the session-expired message when passed one, and not otherwise", () => {
+    const { rerender } = render(<LoginForm onAuthenticated={vi.fn()} />);
+    expect(screen.queryByText(/session expired/i)).not.toBeInTheDocument();
+
+    rerender(<LoginForm onAuthenticated={vi.fn()} message="Your session expired. Please log in again." />);
+    expect(screen.getByText("Your session expired. Please log in again.")).toBeInTheDocument();
   });
 });
