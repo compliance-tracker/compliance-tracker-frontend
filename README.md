@@ -33,6 +33,15 @@ npm run dev
 
 Opens on `http://localhost:5173` by default.
 
+## Testing
+
+```bash
+npm test
+```
+
+Vitest + React Testing Library — no backend/Docker needed, everything's mocked. `npm run test:watch`
+for watch mode during development.
+
 ## Project structure
 
 - `src/lib/types.ts` — TypeScript types mirroring the backend's JSON shapes exactly
