@@ -23,13 +23,11 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     throw new Error(`${options?.method ?? "GET"} ${path} failed: ${response.status}`);
   }
 
-  // DELETE responses are 204 No Content - no body to parse, and response.json() would throw
-  // on the empty string. Every other call here does expect a JSON body.
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  return response.json() as Promise<T>;
+  // Some endpoints (work pass DELETE: 204, auth logout: 200) return no body at all -
+  // response.json() throws on an empty string, so read as text first and only parse if there's
+  // actually something there, rather than special-casing status codes one at a time.
+  const text = await response.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }
 
 export const api = {
@@ -44,6 +42,8 @@ export const api = {
       method: "POST",
       body: JSON.stringify(credentials),
     }),
+
+  logout: () => request<void>("/api/auth/logout", { method: "POST" }),
 
   getBusinesses: () => request<Business[]>("/api/businesses"),
 
