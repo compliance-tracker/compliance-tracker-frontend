@@ -45,6 +45,20 @@ function App() {
     setBusinesses((prev) => [...prev, business]);
   }
 
+  function handleUpdated(business: Business) {
+    setBusinesses((prev) => prev.map((b) => (b.id === business.id ? business : b)));
+    // Keep `selected` in sync too - it's a separate copy of the same business, not a reference
+    // into the `businesses` array, so editing (e.g. a new FYE) wouldn't otherwise be reflected
+    // in DeadlinesPanel/WorkPassesPanel's "{business.name} — ..." headers or refetch anything.
+    setSelected((prev) => (prev?.id === business.id ? business : prev));
+    setDeadlinesRefreshKey((k) => k + 1);
+  }
+
+  function handleDeleted(businessId: number) {
+    setBusinesses((prev) => prev.filter((b) => b.id !== businessId));
+    setSelected((prev) => (prev?.id === businessId ? null : prev));
+  }
+
   async function handleLogout() {
     // Best-effort: tell the server to revoke the token (issue #41) so it can't be reused if
     // it ever leaked. Still clear local state even if this fails (backend unreachable, token
@@ -104,7 +118,13 @@ function App() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <BusinessList businesses={businesses} selectedId={selected?.id ?? null} onSelect={setSelected} />
+          <BusinessList
+            businesses={businesses}
+            selectedId={selected?.id ?? null}
+            onSelect={setSelected}
+            onUpdated={handleUpdated}
+            onDeleted={handleDeleted}
+          />
           <DeadlinesPanel business={selected} refreshKey={deadlinesRefreshKey} />
         </div>
 

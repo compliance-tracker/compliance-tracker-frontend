@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { EditBusinessDialog } from "@/components/EditBusinessDialog";
+import { DeleteBusinessDialog } from "@/components/DeleteBusinessDialog";
 import type { Business } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -8,9 +10,11 @@ interface BusinessListProps {
   businesses: Business[];
   selectedId: number | null;
   onSelect: (business: Business) => void;
+  onUpdated: (business: Business) => void;
+  onDeleted: (businessId: number) => void;
 }
 
-export function BusinessList({ businesses, selectedId, onSelect }: BusinessListProps) {
+export function BusinessList({ businesses, selectedId, onSelect, onUpdated, onDeleted }: BusinessListProps) {
   return (
     <Card className="shadow-sm">
       <CardHeader>
@@ -26,6 +30,7 @@ export function BusinessList({ businesses, selectedId, onSelect }: BusinessListP
                 <TableHead>Name</TableHead>
                 <TableHead>Financial year end</TableHead>
                 <TableHead>GST</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -46,6 +51,12 @@ export function BusinessList({ businesses, selectedId, onSelect }: BusinessListP
                     ) : (
                       <Badge variant="outline">Not registered</Badge>
                     )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1.5">
+                      <EditBusinessDialog business={b} onUpdated={onUpdated} />
+                      <DeleteBusinessDialog business={b} onDeleted={onDeleted} />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

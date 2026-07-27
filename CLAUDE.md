@@ -47,6 +47,8 @@ A fourth login-page pass added a segmented "Log in"/"Sign up" pill toggle (repla
 
 `handleLogout` now calls the real `POST /api/auth/logout` (backend issue #41) before clearing local state, best-effort (`try`/`catch`, always clears locally regardless of the server call's outcome). Verified live: watched the actual network request the button fires, confirmed the token it revokes genuinely stops working on the very next request — not just that a request went out.
 
+#16 (edit/delete business UI, depends on backend #25) is done — `EditBusinessDialog`/`DeleteBusinessDialog`, wired as icon-button actions on each `BusinessList` row. Verified live via Playwright: edited a business's name and FYE, confirmed the deadlines panel's own ACRA date actually recalculated from the new FYE (not just that the row text changed); confirmed Cancel on the delete confirmation genuinely doesn't delete anything; confirmed a real delete falls the app back to its empty state cleanly.
+
 Open (not started): #7 (deploy — depends on backend #5), #9 (test suite — currently zero tests).
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.

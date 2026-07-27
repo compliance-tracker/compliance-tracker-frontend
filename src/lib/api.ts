@@ -53,6 +53,17 @@ export const api = {
       body: JSON.stringify(business),
     }),
 
+  updateBusiness: (businessId: number, business: NewBusiness) =>
+    request<Business>(`/api/businesses/${businessId}`, {
+      method: "PUT",
+      body: JSON.stringify(business),
+    }),
+
+  deleteBusiness: (businessId: number) =>
+    request<void>(`/api/businesses/${businessId}`, {
+      method: "DELETE",
+    }),
+
   getDeadlines: (businessId: number) =>
     request<Deadline[]>(`/api/businesses/${businessId}/deadlines`),
 
