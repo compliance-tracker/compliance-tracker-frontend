@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { api } from "./api";
+import { api, registerSessionExpiredHandler } from "./api";
 import { auth } from "./auth";
 
 // api.ts's request() helper isn't exported directly - tested indirectly through api.* methods,
@@ -12,8 +12,24 @@ function mockFetchOnce(response: Partial<Response> & { ok: boolean }) {
   return fetchMock;
 }
 
+// For the refresh-retry tests (issue #17/#26), which need fetch to behave differently across
+// its 2-3 calls (the original request, the refresh call, and - if refresh succeeded - the
+// retried original request), not the same response every time.
+function mockFetchSequence(responses: (Partial<Response> & { ok: boolean })[]) {
+  const fetchMock = vi.fn();
+  for (const response of responses) {
+    fetchMock.mockResolvedValueOnce(response as Response);
+  }
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
 beforeEach(() => {
   localStorage.clear();
+  // onSessionExpired is a plain module-level reference (see api.ts) so it survives across
+  // tests in this file otherwise - reset it so one test's spy can't be silently invoked by a
+  // later, unrelated test's 401.
+  registerSessionExpiredHandler(() => {});
 });
 
 afterEach(() => {
@@ -22,7 +38,7 @@ afterEach(() => {
 
 describe("request (via api.* methods)", () => {
   it("attaches the Authorization header when a token is stored", async () => {
-    auth.setToken("a-real-token");
+    auth.setTokens("a-real-token", "a-real-refresh-token");
     const fetchMock = mockFetchOnce({
       ok: true,
       status: 200,
@@ -90,5 +106,66 @@ describe("request (via api.* methods)", () => {
     });
 
     await expect(api.getBusinesses()).rejects.toThrow("401");
+  });
+});
+
+describe("silent refresh on 401 (issues #17/#26)", () => {
+  it("retries the original request with a new access token after a successful refresh", async () => {
+    auth.setTokens("expired-token", "a-valid-refresh-token");
+    const fetchMock = mockFetchSequence([
+      { ok: false, status: 401, text: async () => "" },
+      { ok: true, status: 200, json: async () => ({ token: "new-token", refreshToken: "new-refresh-token" }) },
+      { ok: true, status: 200, text: async () => JSON.stringify([]) },
+    ]);
+
+    const businesses = await api.getBusinesses();
+
+    expect(businesses).toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+
+    const [refreshUrl, refreshOptions] = fetchMock.mock.calls[1];
+    expect(refreshUrl).toContain("/api/auth/refresh");
+    expect(refreshOptions.headers.Authorization).toBe("Bearer a-valid-refresh-token");
+
+    const [, retryOptions] = fetchMock.mock.calls[2];
+    expect(retryOptions.headers.Authorization).toBe("Bearer new-token");
+
+    expect(auth.getToken()).toBe("new-token");
+    expect(auth.getRefreshToken()).toBe("new-refresh-token");
+  });
+
+  it("clears tokens and notifies the session-expired handler when refresh also fails", async () => {
+    auth.setTokens("expired-token", "an-expired-refresh-token");
+    mockFetchSequence([
+      { ok: false, status: 401, text: async () => "" },
+      { ok: false, status: 401, text: async () => "" },
+    ]);
+    const handler = vi.fn();
+    registerSessionExpiredHandler(handler);
+
+    await expect(api.getBusinesses()).rejects.toThrow("401");
+
+    expect(handler).toHaveBeenCalledOnce();
+    expect(auth.getToken()).toBeNull();
+    expect(auth.getRefreshToken()).toBeNull();
+  });
+
+  it("does not attempt a refresh when there is no stored refresh token at all", async () => {
+    const fetchMock = mockFetchOnce({ ok: false, status: 401, text: async () => "" });
+
+    await expect(api.getBusinesses()).rejects.toThrow("401");
+
+    // Only the original request - no second call to /api/auth/refresh, since there was no
+    // refresh token to even try sending.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not attempt to refresh a 401 from login itself", async () => {
+    auth.setTokens("stale-token", "a-stale-refresh-token");
+    const fetchMock = mockFetchOnce({ ok: false, status: 401, text: async () => "" });
+
+    await expect(api.login({ email: "owner@example.com", password: "wrong" })).rejects.toThrow("401");
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
