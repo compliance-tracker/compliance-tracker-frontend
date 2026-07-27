@@ -45,7 +45,17 @@ function App() {
     setBusinesses((prev) => [...prev, business]);
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    // Best-effort: tell the server to revoke the token (issue #41) so it can't be reused if
+    // it ever leaked. Still clear local state even if this fails (backend unreachable, token
+    // already expired, etc.) - a logout button should never leave the user stuck "logged in"
+    // just because the server call didn't go through.
+    try {
+      await api.logout();
+    } catch {
+      // ignored - see above
+    }
+
     auth.clearToken();
     setIsAuthenticated(false);
     setBusinesses([]);
