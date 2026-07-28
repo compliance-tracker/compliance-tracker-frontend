@@ -54,8 +54,9 @@ for watch mode during development.
   giving up — a real session only actually ends (bounced to the login screen with an explanation)
   if that refresh fails too, not on the access token's first expiry.
 - `src/components/` — `LoginForm` (login/register, toggles between the two), `StatCard`
-  (summary tiles), `BusinessList` (with `EditBusinessDialog`/`DeleteBusinessDialog` actions per
-  row), `AddBusinessDialog`, `DeadlinesPanel` (deadlines colored by
+  (summary tiles), `BusinessList` (search by name, filter by GST status, sort by name/FYE with a
+  direction toggle — all client-side over the already-fetched list, plus `EditBusinessDialog`/
+  `DeleteBusinessDialog` actions per row), `AddBusinessDialog`, `DeadlinesPanel` (deadlines colored by
   urgency: red ≤30 days, amber ≤90 days, neutral further out), `WorkPassesPanel` (view/add/remove
   a selected business's employee work passes, driving the Employment Pass renewal deadlines,
   same urgency-badge convention as `DeadlinesPanel` — shared logic lives in `src/lib/urgency.ts`).
