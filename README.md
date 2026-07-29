@@ -72,7 +72,9 @@ for watch mode during development.
   list, create/update/delete handlers, `onLogout`) is owned by `App` and passed down to routed
   pages via `<Outlet context={...}/>`/`useOutletContext()` — see `src/components/Shell.tsx`'s
   `ShellContext` type.
-- `src/components/` — `LoginForm` (login/register, toggles between the two), `NavRail` (the fixed
+- `src/components/` — `LoginForm` (login/register, toggles between the two — registering no
+  longer logs you in directly, since login now requires a verified email; shows a "check your
+  email" screen instead, with a resend-verification-email option, issue #75), `NavRail` (the fixed
   dark sidebar; "Overview"/"Edit business" are disabled placeholders until a business is
   selected, real links once one is; an off-canvas drawer below the `lg` breakpoint — a hamburger
   topbar in `Shell.tsx` toggles it, closing automatically on navigation or a backdrop tap, issue
@@ -146,8 +148,10 @@ instead of leaving the UI out of sync with the server. A full "forgot your passw
 exists too — a neutral "check your inbox" page that never reveals whether an email exists, and a
 real reset-password page reached via an emailed link's token, both showing the backend's actual
 rejection reason (invalid/expired token, weak new password) rather than a generic error. Email
-verification is wired up too (`/verify-email?token=...`) — informational only, nothing in the app
-enforces it. **The Harbour Ledger redesign is now fully complete**: design tokens, nav rail +
+verification (`/verify-email?token=...`) is now actually required, not just informational —
+registering shows a "check your email" screen instead of logging you in directly, and logging in
+before verifying is rejected with a real, specific message rather than a generic "incorrect email
+or password." **The Harbour Ledger redesign is now fully complete**: design tokens, nav rail +
 routed pages (including an off-canvas mobile drawer), Calendar, Account, Notifications, and the
 auth pages all match the mockup — every page was deliberately deferred rather than built with
 invented data when its backend support didn't exist yet (Notifications waited on backend issue

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, MailCheck } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -17,9 +17,20 @@ export function VerifyEmailPage() {
   const token = searchParams.get("token");
   const [status, setStatus] = useState<Status>(token ? "verifying" : "error");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Guards against calling verifyEmail twice for the same token - found live (issue #75):
+  // React StrictMode's dev-only double-invoke fires this effect twice for one real mount, which
+  // is normally harmless for an idempotent fetch, but verifyEmail() consumes a single-use token
+  // server-side. The standard "ignore a stale response" cleanup pattern doesn't fix this case -
+  // both calls really do happen, and now have *genuinely different* outcomes (the first
+  // succeeds, the second correctly gets rejected as already-used), so whichever one's response
+  // arrives last would still overwrite the other's with the wrong final status. A ref (unlike
+  // effect-local state) survives StrictMode's synthetic unmount/remount, so it reliably prevents
+  // the second invocation from firing the request at all.
+  const hasRequestedRef = useRef(false);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || hasRequestedRef.current) return;
+    hasRequestedRef.current = true;
 
     api
       .verifyEmail(token)

@@ -1,4 +1,4 @@
-import type { ApiError, Business, NewBusiness, Deadline, Credentials, AuthResponse, WorkPass, NewWorkPass, PageResponse, NotificationStatus } from "./types";
+import type { ApiError, Business, NewBusiness, Deadline, Credentials, AuthResponse, RegistrationResponse, WorkPass, NewWorkPass, PageResponse, NotificationStatus } from "./types";
 import { auth } from "./auth";
 
 // Thrown by request() on any non-ok response - carries the backend's real ApiError message
@@ -109,8 +109,11 @@ async function request<T>(path: string, options?: RequestInit, skipAuthRetry = f
 }
 
 export const api = {
+  // No longer returns usable tokens (backend issue #120) - registration alone doesn't log
+  // anyone in anymore, since login itself now requires a verified email. Just a confirmation
+  // message telling the user what to do next.
   register: (credentials: Credentials) =>
-    request<AuthResponse>("/api/auth/register", { method: "POST", body: JSON.stringify(credentials) }, true),
+    request<RegistrationResponse>("/api/auth/register", { method: "POST", body: JSON.stringify(credentials) }, true),
 
   login: (credentials: Credentials) =>
     request<AuthResponse>("/api/auth/login", { method: "POST", body: JSON.stringify(credentials) }, true),
@@ -183,4 +186,11 @@ export const api = {
   // Backend issue #114 - which NotificationSender channel is active, and the from-address if
   // it's email. App-level server config, not per-account, so there's nothing to set here.
   getNotificationStatus: () => request<NotificationStatus>("/api/notifications/status"),
+
+  // Always resolves 200 regardless of whether the email exists or is already verified (backend
+  // issue #120, same enumeration-avoidance shape as forgotPassword) - without this, a real
+  // verification email that never arrives leaves a new account stuck with no way to get one:
+  // the account already exists, so re-registering just hits a 409.
+  resendVerification: (email: string) =>
+    request<void>("/api/auth/resend-verification", { method: "POST", body: JSON.stringify({ email }) }, true),
 };

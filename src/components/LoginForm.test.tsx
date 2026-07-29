@@ -27,6 +27,7 @@ vi.mock("@/lib/api", async (importOriginal) => {
     api: {
       login: vi.fn(),
       register: vi.fn(),
+      resendVerification: vi.fn(),
     },
   };
 });
@@ -35,6 +36,7 @@ beforeEach(() => {
   localStorage.clear();
   vi.mocked(api.login).mockReset();
   vi.mocked(api.register).mockReset();
+  vi.mocked(api.resendVerification).mockReset();
 });
 
 afterEach(() => {
@@ -110,8 +112,12 @@ describe("LoginForm", () => {
     expect(auth.getToken()).toBeNull();
   });
 
-  it("on successful registration, calls api.register (not api.login)", async () => {
-    vi.mocked(api.register).mockResolvedValue({ token: "a-new-token", refreshToken: "a-new-refresh-token" });
+  it("on successful registration, shows the check-your-email screen instead of logging in (issue #120)", async () => {
+    // Backend #120: register no longer returns tokens or logs anyone in - login itself now
+    // requires a verified email, so there's nothing to authenticate with yet.
+    vi.mocked(api.register).mockResolvedValue({
+      message: "Registration successful. Check your email to verify your account, then log in.",
+    });
     const onAuthenticated = vi.fn();
     const user = userEvent.setup();
     renderLoginForm({ onAuthenticated });
@@ -123,7 +129,62 @@ describe("LoginForm", () => {
 
     expect(api.register).toHaveBeenCalledWith({ email: "new@example.com", password: "a-new-password" });
     expect(api.login).not.toHaveBeenCalled();
-    expect(onAuthenticated).toHaveBeenCalledOnce();
+    expect(onAuthenticated).not.toHaveBeenCalled();
+    expect(auth.getToken()).toBeNull();
+    expect(await screen.findByText("Check your email")).toBeInTheDocument();
+    expect(
+      screen.getByText("Registration successful. Check your email to verify your account, then log in."),
+    ).toBeInTheDocument();
+  });
+
+  it("lets the user resend the verification email from the check-your-email screen", async () => {
+    vi.mocked(api.register).mockResolvedValue({ message: "Check your email." });
+    vi.mocked(api.resendVerification).mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderLoginForm({ onAuthenticated: vi.fn() });
+
+    await user.click(screen.getByRole("button", { name: "Sign up" }));
+    await user.type(screen.getByLabelText("Email"), "new@example.com");
+    await user.type(screen.getByLabelText("Password"), "a-new-password");
+    await user.click(screen.getByRole("button", { name: "Register" }));
+    await screen.findByText("Check your email");
+
+    await user.click(screen.getByRole("button", { name: "Resend verification email" }));
+
+    expect(api.resendVerification).toHaveBeenCalledWith("new@example.com");
+    expect(await screen.findByText(/another email is on its way/)).toBeInTheDocument();
+  });
+
+  it("returns to the login form from the check-your-email screen", async () => {
+    vi.mocked(api.register).mockResolvedValue({ message: "Check your email." });
+    const user = userEvent.setup();
+    renderLoginForm({ onAuthenticated: vi.fn() });
+
+    await user.click(screen.getByRole("button", { name: "Sign up" }));
+    await user.type(screen.getByLabelText("Email"), "new@example.com");
+    await user.type(screen.getByLabelText("Password"), "a-new-password");
+    await user.click(screen.getByRole("button", { name: "Register" }));
+    await screen.findByText("Check your email");
+
+    await user.click(screen.getByRole("button", { name: "Back to log in" }));
+
+    expect(screen.getByText("Welcome back")).toBeInTheDocument();
+  });
+
+  it("shows the backend's real message when logging in with an unverified account (backend issue #120)", async () => {
+    vi.mocked(api.login).mockRejectedValue(
+      new ApiRequestError("Please verify your email before logging in.", "FORBIDDEN"),
+    );
+    const onAuthenticated = vi.fn();
+    const user = userEvent.setup();
+    renderLoginForm({ onAuthenticated });
+
+    await user.type(screen.getByLabelText("Email"), "unverified@example.com");
+    await user.type(screen.getByLabelText("Password"), "correct-password");
+    await user.click(submitButton());
+
+    expect(await screen.findByText("Please verify your email before logging in.")).toBeInTheDocument();
+    expect(onAuthenticated).not.toHaveBeenCalled();
   });
 
   it("shows the backend's real message on a failed registration (issue #52)", async () => {
