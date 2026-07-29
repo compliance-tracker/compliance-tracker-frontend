@@ -62,6 +62,9 @@ for watch mode during development.
   same urgency-badge convention as `DeadlinesPanel` — shared logic lives in `src/lib/urgency.ts`).
 - `src/components/ui/` — shadcn/ui primitives (owned code, not an npm dependency — copied in
   via the shadcn CLI, edit freely).
+- `src/components/ErrorBoundary.tsx` — top-level React error boundary, wrapped around `<App />`
+  in `main.tsx`. Catches any otherwise-uncaught render error and shows a "Something went wrong"
+  fallback with a reload button instead of a blank white screen.
 
 ## Status
 
@@ -69,6 +72,8 @@ The core flow is fully working: register/log in, add a business, see its real de
 manage its employees' work passes. Auth is enforced by the backend (JWT, every business scoped
 to its own owner) — a fresh account starts with an empty list, not everyone else's data. Layout
 is a real dashboard (summary stat tiles, side-by-side business list + deadlines panel on wider
-screens, urgency-colored deadline badges), not just default component styling. See
+screens, urgency-colored deadline badges), not just default component styling. A top-level error
+boundary catches any otherwise-uncaught render error with a friendly fallback rather than a blank
+screen. See
 [issues on the frontend repo](https://github.com/compliance-tracker/compliance-tracker-frontend/issues)
 for current progress.
