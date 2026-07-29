@@ -57,26 +57,32 @@ for watch mode during development.
   (carrying the backend's real `{error, message}` body) on any other non-2xx response where the
   backend actually sent one, so a caller can show the genuine reason instead of a generic string —
   every form (login/register, add/edit/delete business, work passes) does this now.
-- `src/components/` — `LoginForm` (login/register, toggles between the two), `StatCard`
-  (summary tiles), `BusinessList` (search by name, filter by GST status, sort by name/FYE with a
-  direction toggle — all client-side over the already-fetched list, plus each business's own
-  reminder lead time and `EditBusinessDialog`/`DeleteBusinessDialog` actions per row),
-  `AddBusinessDialog` (name, financial year end, GST status, reminder lead time in days —
-  defaults to 14, 1-90 — and an optional incorporation date, used to validate a first financial
-  year doesn't run more than 18 months past incorporation), `DeadlinesPanel` (deadlines colored by
-  urgency: red ≤30 days, amber ≤90 days, neutral further out), `WorkPassesPanel` (view/add/remove
-  a selected business's employee work passes, driving the Employment Pass renewal deadlines,
-  same urgency-badge convention as `DeadlinesPanel` — shared logic lives in `src/lib/urgency.ts`;
-  removing a work pass requires confirming first, same as deleting a business).
+- **Routing** (`main.tsx`'s `BrowserRouter`) — `/forgot-password`, `/reset-password?token=...`
+  (issue #55), and everything else under `App`, which (once authenticated) renders a persistent
+  `NavRail` + routed pages (issue #61): `/businesses` (list), `/businesses/:id` (a business's
+  deadlines + work passes), `/businesses/:id/edit` (edit/delete), and a 404 fallback for anything
+  else. Page-level state (the fetched businesses list, create/update/delete handlers) is owned by
+  `App` and passed down to routed pages via `<Outlet context={...}/>`/`useOutletContext()` — see
+  `src/components/Shell.tsx`'s `ShellContext` type.
+- `src/components/` — `LoginForm` (login/register, toggles between the two), `NavRail` (the fixed
+  dark sidebar; "Work passes"/"Edit business" are disabled placeholders until a business is
+  selected, real links once one is), `StatCard` (summary tiles, with a `severity` prop driving a
+  top color stripe), `BusinessesPage` (stat tiles + `BusinessList`, the list's own "View" link
+  navigates to a business's detail page), `BusinessList` (search by name, filter by GST status,
+  sort by name/FYE with a direction toggle, all client-side over the already-fetched list),
+  `AddBusinessDialog` (name, financial year end, GST status, reminder lead time in days — defaults
+  to 14, 1-90 — and an optional incorporation date, used to validate a first financial year
+  doesn't run more than 18 months past incorporation), `BusinessDetailPage` (`DeadlinesPanel` +
+  `WorkPassesPanel` for one business — deadlines colored by urgency: red ≤30 days, amber ≤90 days,
+  neutral further out; work passes drive the Employment Pass renewal deadlines, same urgency-badge
+  convention, shared logic in `src/lib/urgency.ts`; removing a work pass requires confirming
+  first), `EditBusinessPage` (a full page — the old `EditBusinessDialog` modal's replacement —
+  plus a danger-zone delete reusing `DeleteBusinessDialog`'s confirmation).
 - `src/components/ui/` — shadcn/ui primitives (owned code, not an npm dependency — copied in
   via the shadcn CLI, edit freely).
 - `src/components/ErrorBoundary.tsx` — top-level React error boundary, wrapped around `<App />`
   in `main.tsx`. Catches any otherwise-uncaught render error and shows a "Something went wrong"
   fallback with a reload button instead of a blank white screen.
-- `src/components/ForgotPasswordPage.tsx`/`ResetPasswordPage.tsx` — standalone routes (`/forgot-
-  password`, `/reset-password?token=...`), the only two real URL-addressable pages in the app;
-  everything else is still owned by `App` directly. `react-router`'s `BrowserRouter` wraps the
-  whole app in `main.tsx` specifically so the reset link's token can travel via a real URL.
 - `src/components/AmbientBackground.tsx` — a fixed, low-opacity "depth-sounding" motif (concentric
   rings + a slow rotating sweep) behind all page content, part of the "Harbour Ledger" design
   (issue #59). Respects `prefers-reduced-motion` via Tailwind's `motion-safe:` variant.
@@ -96,12 +102,14 @@ top color stripe encoding severity (teal default, amber for "due soon", brick fo
 
 The core flow is fully working: register/log in, add a business, see its real deadlines,
 manage its employees' work passes. Auth is enforced by the backend (JWT, every business scoped
-to its own owner) — a fresh account starts with an empty list, not everyone else's data. Layout
-is a real dashboard (summary stat tiles, side-by-side business list + deadlines panel on wider
-screens, urgency-colored deadline badges), not just default component styling. A top-level error
-boundary catches any otherwise-uncaught render error with a friendly fallback rather than a blank
-screen, styled per the "Harbour Ledger" design system above. Each business has its own configurable reminder lead time (1-90 days, default 14, set in
-`AddBusinessDialog`/`EditBusinessDialog`, shown in the business list). An optional incorporation
+to its own owner) — a fresh account starts with an empty list, not everyone else's data. The
+authenticated app is a real multi-page layout now, not a single dashboard — a persistent nav rail
+(fixed dark "harbour" sidebar) plus routed pages for the business list, a business's own
+deadlines/work-passes detail, and editing/deleting a business, with a 404 fallback for anything
+else. A top-level error boundary catches any otherwise-uncaught render error with a friendly
+fallback rather than a blank screen, styled per the "Harbour Ledger" design system above. Each
+business has its own configurable reminder lead time (1-90 days, default 14, set in
+`AddBusinessDialog`/`EditBusinessPage`, shown in the business list). An optional incorporation
 date can be set on creation, validated against a real first-year ACRA rule (Companies Act 1967
 s.198's 18-month cap) with the backend's actual rejection reason shown, not a generic error —
 every form in the app now shows the backend's real error message where one exists (login/

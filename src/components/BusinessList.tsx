@@ -1,28 +1,22 @@
 import { useMemo, useState } from "react";
 import { ArrowDownAZ, ArrowUpAZ, Search } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { EditBusinessDialog } from "@/components/EditBusinessDialog";
-import { DeleteBusinessDialog } from "@/components/DeleteBusinessDialog";
 import type { Business } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 interface BusinessListProps {
   businesses: Business[];
-  selectedId: number | null;
-  onSelect: (business: Business) => void;
-  onUpdated: (business: Business) => void;
-  onDeleted: (businessId: number) => void;
 }
 
 type GstFilter = "all" | "registered" | "not-registered";
 type SortField = "name" | "financialYearEnd";
 
-export function BusinessList({ businesses, selectedId, onSelect, onUpdated, onDeleted }: BusinessListProps) {
+export function BusinessList({ businesses }: BusinessListProps) {
   const [query, setQuery] = useState("");
   const [gstFilter, setGstFilter] = useState<GstFilter>("all");
   const [sortField, setSortField] = useState<SortField>("name");
@@ -117,19 +111,12 @@ export function BusinessList({ businesses, selectedId, onSelect, onUpdated, onDe
                     <TableHead>Financial year end</TableHead>
                     <TableHead>GST</TableHead>
                     <TableHead>Reminder lead</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-right"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {visibleBusinesses.map((b) => (
-                    <TableRow
-                      key={b.id}
-                      onClick={() => onSelect(b)}
-                      className={cn(
-                        "cursor-pointer transition-colors hover:bg-muted/50",
-                        selectedId === b.id && "bg-primary/10 hover:bg-primary/15"
-                      )}
-                    >
+                    <TableRow key={b.id}>
                       <TableCell className="font-medium">{b.name}</TableCell>
                       <TableCell className="font-mono">{b.financialYearEnd}</TableCell>
                       <TableCell>
@@ -141,10 +128,9 @@ export function BusinessList({ businesses, selectedId, onSelect, onUpdated, onDe
                       </TableCell>
                       <TableCell className="text-muted-foreground">{b.leadTimeDays} days</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-1.5">
-                          <EditBusinessDialog business={b} onUpdated={onUpdated} />
-                          <DeleteBusinessDialog business={b} onDeleted={onDeleted} />
-                        </div>
+                        <Button asChild variant="ghost" size="sm">
+                          <Link to={`/businesses/${b.id}`}>View</Link>
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}

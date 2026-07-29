@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -40,16 +39,10 @@ export function DeleteBusinessDialog({ business, onDeleted }: DeleteBusinessDial
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
+      {/* Rendered from EditBusinessPage's danger zone (issue #61) - a full labeled button, not
+          the icon-only trigger this used when it lived inline in a BusinessList row. */}
       <DialogTrigger asChild>
-        {/* stopPropagation - see EditBusinessDialog for why this matters inside a table row. */}
-        <Button
-          size="icon-sm"
-          variant="destructive"
-          onClick={(e) => e.stopPropagation()}
-          aria-label={`Delete ${business.name}`}
-        >
-          <Trash2 />
-        </Button>
+        <Button variant="destructive">Delete business</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

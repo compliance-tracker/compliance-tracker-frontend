@@ -180,11 +180,31 @@ Admin Rules page as part of any of this — no backend rule-override API exists 
 only `auth`/`business`/`workpass` controllers), and the design-handoff doc is explicit that a page
 with no real backend behind it shouldn't get built; stays tracked separately under #21.
 
-Remaining steps (not started): nav rail + route-based navigation (replacing the single dashboard
-with Businesses/Calendar/Work Passes/Edit Business/Notifications/Account as real routes) →
-Calendar page (#19) → Account page → Notifications status page (read-only channel info only, no
-history table — no backend endpoint for that) → 404 page → reskin the auth pages properly + build
-Verify Email (#56).
+Step 2, #61 (nav rail + route-based navigation), is done — the single dashboard is now a real
+multi-page app: `/businesses` (list, stat tiles + `BusinessList` — its row actions dropped to a
+single "View" link), `/businesses/:id` (`BusinessDetailPage`, combining `DeadlinesPanel` +
+`WorkPassesPanel` — the redesigned IA has no separate per-business deadlines page, cross-business
+deadlines live in Calendar, a later step, so this is a deliberate deviation from the mockup's
+literal page split, not a dropped feature), `/businesses/:id/edit` (`EditBusinessPage`, a full
+page replacing `EditBusinessDialog`'s modal, with a danger-zone delete reusing
+`DeleteBusinessDialog`, repurposed from an icon-trigger to a full button), and a 404 fallback
+(`NotFoundPage`) for anything else. `NavRail` reads the current `:id` via `useParams()` (works
+from a layout route's `element`, not just the leaf, since react-router v6 merges params across
+the whole matched branch) to decide whether "Work passes"/"Edit business" are real links or
+disabled placeholders. `App` itself now only owns auth gating + the businesses list/CRUD
+handlers, passed to routed pages via `<Outlet context={...}/>`/`useOutletContext()`
+(`Shell.tsx`'s `ShellContext`) rather than a new Context API. Deliberately did NOT drop the
+ability to log out just because the mockup's "Log out" button lives on the not-yet-built Account
+page — pinned a working one to the bottom of the nav rail as a documented placeholder instead.
+Verified live via Playwright: the full flow end-to-end (register → land on `/businesses` →
+nav-rail items disabled with no business selected → create a business → View → nav-rail items
+become real links → Edit business → save → redirected back to the detail page with the update
+reflected → a bad URL shows 404 → a well-formed but nonexistent business id shows "Business not
+found" — zero console errors throughout).
+
+Remaining steps (not started): Calendar page (#19) → Account page → Notifications status page
+(read-only channel info only, no history table — no backend endpoint for that) → reskin the auth
+pages properly + build Verify Email (#56).
 
 Open (not started): #7 (deploy — depends on backend #5).
 
