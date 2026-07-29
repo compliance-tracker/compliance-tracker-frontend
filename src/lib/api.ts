@@ -108,6 +108,22 @@ export const api = {
 
   logout: () => request<void>("/api/auth/logout", { method: "POST" }, true),
 
+  // Always resolves 200 regardless of whether the email actually exists (backend issue #37,
+  // same enumeration-avoidance reasoning as login's identical 401 for both "no such user" and
+  // "wrong password") - callers should show one neutral message either way, never branch on
+  // whether this "succeeded" as a signal of whether the account exists.
+  forgotPassword: (email: string) =>
+    request<void>("/api/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) }, true),
+
+  // 401 (invalid/expired token) or 400 (weak password) via ApiRequestError - both need to reach
+  // the user as the real reason, not a generic failure.
+  resetPassword: (token: string, newPassword: string) =>
+    request<void>(
+      "/api/auth/reset-password",
+      { method: "POST", body: JSON.stringify({ token, newPassword }) },
+      true,
+    ),
+
   // Backend now returns a PageResponse envelope, not a bare array (issue #49 / this issue #46)
   // - unwraps .content immediately so every existing caller keeps working unchanged. The
   // backend's default page size (20) already covers realistic current usage; a real "load

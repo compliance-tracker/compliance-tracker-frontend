@@ -71,6 +71,10 @@ for watch mode during development.
 - `src/components/ErrorBoundary.tsx` — top-level React error boundary, wrapped around `<App />`
   in `main.tsx`. Catches any otherwise-uncaught render error and shows a "Something went wrong"
   fallback with a reload button instead of a blank white screen.
+- `src/components/ForgotPasswordPage.tsx`/`ResetPasswordPage.tsx` — standalone routes (`/forgot-
+  password`, `/reset-password?token=...`), the only two real URL-addressable pages in the app;
+  everything else is still owned by `App` directly. `react-router`'s `BrowserRouter` wraps the
+  whole app in `main.tsx` specifically so the reset link's token can travel via a real URL.
 
 ## Status
 
@@ -87,6 +91,9 @@ s.198's 18-month cap) with the backend's actual rejection reason shown, not a ge
 every form in the app now shows the backend's real error message where one exists (login/
 register, business create/edit/delete, work pass add/remove), including a work-pass removal
 that fails after already being optimistically removed from the list, which now restores the row
-instead of leaving the UI out of sync with the server. See
+instead of leaving the UI out of sync with the server. A full "forgot your password?" flow now
+exists too — a neutral "check your inbox" page that never reveals whether an email exists, and a
+real reset-password page reached via an emailed link's token, both showing the backend's actual
+rejection reason (invalid/expired token, weak new password) rather than a generic error. See
 [issues on the frontend repo](https://github.com/compliance-tracker/compliance-tracker-frontend/issues)
 for current progress.

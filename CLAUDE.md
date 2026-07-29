@@ -10,7 +10,7 @@ experience) — explain framework concepts, not just Java/Spring ones.
 - **Build tool:** Vite
 - **Styling:** Tailwind CSS v4 (uses the `@tailwindcss/vite` plugin, not the older PostCSS config style)
 - **Components:** shadcn/ui — components are copied into `src/components/ui/` via its CLI, not an npm dependency; edit them freely, they're owned code
-- No routing library, no state management library — the app is small enough that `useState`/`useEffect` is enough; revisit if it grows
+- **Routing**: `react-router` (issue #55), added specifically because password reset needs a real URL (`/reset-password?token=...`) to carry a token from an email link — `main.tsx` wraps everything in a `BrowserRouter`/`Routes`; only `/forgot-password` and `/reset-password` are actual routes, `App` itself still owns everything else (the login screen and the authenticated dashboard) exactly as before, not restructured into nested routes of its own. No state management library — `useState`/`useEffect` is still enough for everything else; revisit if that changes
 - Calls the backend directly (`src/lib/api.ts`), no BFF/proxy layer
 - **Auth:** JWT access + refresh pair stored in `localStorage` (`src/lib/auth.ts`), access token attached to every request in `api.ts`'s `request()` helper — no auth context/provider, just plain modules with get/set/clear functions and a module-level `registerSessionExpiredHandler` callback for the one place (`App.tsx`) that needs to react to a session actually ending
 
@@ -119,6 +119,38 @@ real backend messages; a work-pass delete forced to fail via route interception 
 500 with a structured body) confirmed the row visually reappears and the real message shows,
 not just that the code compiles.
 
-Open (not started): #7 (deploy — depends on backend #5).
+#55 (password reset UI, backend #37's frontend counterpart) is done — the first real
+architectural change since scaffolding: `react-router` added specifically because a reset link
+needs a genuine URL to carry its token (`/reset-password?token=...`), which the previous
+`useState`-only approach had no way to handle. Discussed with the user first (a real stack
+change, per this file's "don't change without discussing" rule) — chose adding a proper router
+over hand-parsing `window.location.search`, since this is exactly the "revisit if it grows" case
+the original no-router decision anticipated. Scope stayed narrow: only `/forgot-password` and
+`/reset-password` are actual routes (`ForgotPasswordPage`/`ResetPasswordPage`); `App` itself is
+unchanged, still just rendered at `/*` and still owns the login screen and dashboard directly,
+not restructured into nested routes of its own. `ForgotPasswordPage` always shows the same
+neutral "if an account exists..." message regardless of outcome (matching the backend's
+enumeration-avoidance design) — including on a network failure, which needed an explicit `catch`
+block to swallow (an unhandled-rejection warning surfaced this during testing; a bare
+`try/finally` with no `catch` doesn't actually stop the rejection from propagating). A "Forgot
+password?" link was added to `LoginForm` (login mode only). One test-infra gotcha: `LoginForm`'s
+existing tests all needed wrapping in `MemoryRouter` once it started rendering a real `<Link>` —
+a `<Link>` outside any router context throws, not just fails an assertion.
+
+Verified live end-to-end via a scratch Playwright script: registered an account, requested a
+reset (confirmed the neutral message), read the real token straight out of Postgres (email isn't
+actually delivered locally — `LoggingNotificationSender`/`AuthEmailSender` just log it), visited
+the real `/reset-password?token=...` URL as if clicking the emailed link, reset the password,
+confirmed the old password now fails and the new one works, and confirmed reusing the same
+(single-use) token a second time is correctly rejected. `npm audit` flags `react-router` for a
+CSRF-bypass advisory scoped to its RSC (React Server Components) framework mode specifically —
+this app is a plain Vite SPA using neither RSC nor framework mode, so the advisory doesn't apply
+to how it's actually used here; not treated as blocking, but worth re-checking if this ever
+changes (e.g. a future move to a meta-framework).
+
+#56 (email verification UI, backend #36's frontend counterpart) is filed but not started — lower
+priority since nothing currently enforces `emailVerified` on the backend either.
+
+Open (not started): #7 (deploy — depends on backend #5), #56.
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.

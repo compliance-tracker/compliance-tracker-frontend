@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Bell, CalendarClock, FileCheck2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
@@ -195,6 +196,15 @@ export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
                   {submitting ? "Please wait..." : mode === "login" ? "Log in" : "Register"}
                 </Button>
               </form>
+
+              {mode === "login" && (
+                <Link
+                  to="/forgot-password"
+                  className="block text-center text-sm text-muted-foreground hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              )}
             </CardContent>
           </Card>
         </div>
