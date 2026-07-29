@@ -37,3 +37,16 @@ export interface WorkPass {
 }
 
 export type NewWorkPass = Omit<WorkPass, "id">;
+
+// Mirrors com.chrainx.compliance_tracker.business.PageResponse (backend issue #49) - both
+// GET /api/businesses and GET /api/businesses/{id}/work-passes now return this envelope instead
+// of a bare array. Only .content is actually used right now (api.ts unwraps it immediately) -
+// the rest of the fields exist for a future real pagination UI (page navigation, "N of M"), not
+// built yet since the backend's default page size (20) already covers realistic current usage.
+export interface PageResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}

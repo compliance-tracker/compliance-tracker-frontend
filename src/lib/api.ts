@@ -1,4 +1,4 @@
-import type { Business, NewBusiness, Deadline, Credentials, AuthResponse, WorkPass, NewWorkPass } from "./types";
+import type { Business, NewBusiness, Deadline, Credentials, AuthResponse, WorkPass, NewWorkPass, PageResponse } from "./types";
 import { auth } from "./auth";
 
 // VITE_API_BASE_URL lets this point at a different backend later (e.g. once deployed to real
@@ -80,7 +80,12 @@ export const api = {
 
   logout: () => request<void>("/api/auth/logout", { method: "POST" }, true),
 
-  getBusinesses: () => request<Business[]>("/api/businesses"),
+  // Backend now returns a PageResponse envelope, not a bare array (issue #49 / this issue #46)
+  // - unwraps .content immediately so every existing caller keeps working unchanged. The
+  // backend's default page size (20) already covers realistic current usage; a real "load
+  // more"/page-navigation UI would thread page/size through as real params instead, but isn't
+  // needed yet.
+  getBusinesses: () => request<PageResponse<Business>>("/api/businesses").then((page) => page.content),
 
   createBusiness: (business: NewBusiness) =>
     request<Business>("/api/businesses", {
@@ -102,8 +107,9 @@ export const api = {
   getDeadlines: (businessId: number) =>
     request<Deadline[]>(`/api/businesses/${businessId}/deadlines`),
 
+  // Same PageResponse unwrap as getBusinesses above (backend issue #49).
   getWorkPasses: (businessId: number) =>
-    request<WorkPass[]>(`/api/businesses/${businessId}/work-passes`),
+    request<PageResponse<WorkPass>>(`/api/businesses/${businessId}/work-passes`).then((page) => page.content),
 
   createWorkPass: (businessId: number, workPass: NewWorkPass) =>
     request<WorkPass>(`/api/businesses/${businessId}/work-passes`, {
