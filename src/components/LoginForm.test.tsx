@@ -1,9 +1,22 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { LoginForm } from "./LoginForm";
 import { api, ApiRequestError } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import type { ComponentProps } from "react";
+
+// LoginForm renders a react-router <Link> (the new "Forgot password?" link, issue #55), which
+// throws without a Router context above it - MemoryRouter is the standard test-only stand-in,
+// same idea as the real BrowserRouter used in main.tsx but without touching the actual URL.
+function renderLoginForm(props: ComponentProps<typeof LoginForm>) {
+  return render(
+    <MemoryRouter>
+      <LoginForm {...props} />
+    </MemoryRouter>,
+  );
+}
 
 // Keeps the real ApiRequestError export (LoginForm does `err instanceof ApiRequestError`,
 // which throws if that's undefined) while still stubbing out login/register themselves.
@@ -40,7 +53,7 @@ function submitButton() {
 
 describe("LoginForm", () => {
   it("defaults to login mode", () => {
-    render(<LoginForm onAuthenticated={vi.fn()} />);
+    renderLoginForm({ onAuthenticated: vi.fn() });
 
     expect(screen.getByText("Welcome back")).toBeInTheDocument();
     expect(submitButton()).toHaveTextContent("Log in");
@@ -48,7 +61,7 @@ describe("LoginForm", () => {
 
   it("switches to register mode when the Sign up toggle is clicked", async () => {
     const user = userEvent.setup();
-    render(<LoginForm onAuthenticated={vi.fn()} />);
+    renderLoginForm({ onAuthenticated: vi.fn() });
 
     await user.click(screen.getByRole("button", { name: "Sign up" }));
 
@@ -58,7 +71,7 @@ describe("LoginForm", () => {
 
   it("switches back to login mode when the Log in toggle is clicked again", async () => {
     const user = userEvent.setup();
-    render(<LoginForm onAuthenticated={vi.fn()} />);
+    renderLoginForm({ onAuthenticated: vi.fn() });
 
     await user.click(screen.getByRole("button", { name: "Sign up" }));
     await user.click(screen.getByRole("button", { name: "Log in" }));
@@ -70,7 +83,7 @@ describe("LoginForm", () => {
     vi.mocked(api.login).mockResolvedValue({ token: "a-real-token", refreshToken: "a-real-refresh-token" });
     const onAuthenticated = vi.fn();
     const user = userEvent.setup();
-    render(<LoginForm onAuthenticated={onAuthenticated} />);
+    renderLoginForm({ onAuthenticated });
 
     await user.type(screen.getByLabelText("Email"), "owner@example.com");
     await user.type(screen.getByLabelText("Password"), "correct-password");
@@ -86,7 +99,7 @@ describe("LoginForm", () => {
     vi.mocked(api.login).mockRejectedValue(new Error("POST /api/auth/login failed: 401"));
     const onAuthenticated = vi.fn();
     const user = userEvent.setup();
-    render(<LoginForm onAuthenticated={onAuthenticated} />);
+    renderLoginForm({ onAuthenticated });
 
     await user.type(screen.getByLabelText("Email"), "owner@example.com");
     await user.type(screen.getByLabelText("Password"), "wrong-password");
@@ -101,7 +114,7 @@ describe("LoginForm", () => {
     vi.mocked(api.register).mockResolvedValue({ token: "a-new-token", refreshToken: "a-new-refresh-token" });
     const onAuthenticated = vi.fn();
     const user = userEvent.setup();
-    render(<LoginForm onAuthenticated={onAuthenticated} />);
+    renderLoginForm({ onAuthenticated });
 
     await user.click(screen.getByRole("button", { name: "Sign up" }));
     await user.type(screen.getByLabelText("Email"), "new@example.com");
@@ -121,7 +134,7 @@ describe("LoginForm", () => {
       new ApiRequestError("Password must be at least 8 characters and include a letter and a digit.", "BAD_REQUEST"),
     );
     const user = userEvent.setup();
-    render(<LoginForm onAuthenticated={vi.fn()} />);
+    renderLoginForm({ onAuthenticated: vi.fn() });
 
     await user.click(screen.getByRole("button", { name: "Sign up" }));
     await user.type(screen.getByLabelText("Email"), "new@example.com");
@@ -134,10 +147,14 @@ describe("LoginForm", () => {
   });
 
   it("shows the session-expired message when passed one, and not otherwise", () => {
-    const { rerender } = render(<LoginForm onAuthenticated={vi.fn()} />);
+    const { rerender } = renderLoginForm({ onAuthenticated: vi.fn() });
     expect(screen.queryByText(/session expired/i)).not.toBeInTheDocument();
 
-    rerender(<LoginForm onAuthenticated={vi.fn()} message="Your session expired. Please log in again." />);
+    rerender(
+      <MemoryRouter>
+        <LoginForm onAuthenticated={vi.fn()} message="Your session expired. Please log in again." />
+      </MemoryRouter>,
+    );
     expect(screen.getByText("Your session expired. Please log in again.")).toBeInTheDocument();
   });
 });
