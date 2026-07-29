@@ -26,6 +26,7 @@ export function EditBusinessDialog({ business, onUpdated }: EditBusinessDialogPr
   const [name, setName] = useState(business.name);
   const [financialYearEnd, setFinancialYearEnd] = useState(business.financialYearEnd);
   const [gstRegistered, setGstRegistered] = useState(business.gstRegistered);
+  const [leadTimeDays, setLeadTimeDays] = useState(String(business.leadTimeDays));
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,6 +37,7 @@ export function EditBusinessDialog({ business, onUpdated }: EditBusinessDialogPr
       setName(business.name);
       setFinancialYearEnd(business.financialYearEnd);
       setGstRegistered(business.gstRegistered);
+      setLeadTimeDays(String(business.leadTimeDays));
       setError(null);
     }
     setOpen(next);
@@ -47,7 +49,12 @@ export function EditBusinessDialog({ business, onUpdated }: EditBusinessDialogPr
     setError(null);
 
     try {
-      const updated = await api.updateBusiness(business.id, { name, financialYearEnd, gstRegistered });
+      const updated = await api.updateBusiness(business.id, {
+        name,
+        financialYearEnd,
+        gstRegistered,
+        leadTimeDays: Number(leadTimeDays),
+      });
       onUpdated(updated);
       setOpen(false);
     } catch {
@@ -102,6 +109,19 @@ export function EditBusinessDialog({ business, onUpdated }: EditBusinessDialogPr
                 onCheckedChange={(checked) => setGstRegistered(checked === true)}
               />
               <Label htmlFor="edit-gst">GST registered</Label>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="edit-lead-time">Reminder lead time (days)</Label>
+              <Input
+                id="edit-lead-time"
+                type="number"
+                min={1}
+                max={90}
+                value={leadTimeDays}
+                onChange={(e) => setLeadTimeDays(e.target.value)}
+                required
+              />
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}

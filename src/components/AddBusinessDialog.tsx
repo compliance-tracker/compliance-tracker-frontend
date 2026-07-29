@@ -24,6 +24,7 @@ export function AddBusinessDialog({ onCreated }: AddBusinessDialogProps) {
   const [name, setName] = useState("");
   const [financialYearEnd, setFinancialYearEnd] = useState("");
   const [gstRegistered, setGstRegistered] = useState(false);
+  const [leadTimeDays, setLeadTimeDays] = useState("14");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,12 +34,18 @@ export function AddBusinessDialog({ onCreated }: AddBusinessDialogProps) {
     setError(null);
 
     try {
-      const created = await api.createBusiness({ name, financialYearEnd, gstRegistered });
+      const created = await api.createBusiness({
+        name,
+        financialYearEnd,
+        gstRegistered,
+        leadTimeDays: Number(leadTimeDays),
+      });
       onCreated(created);
       setOpen(false);
       setName("");
       setFinancialYearEnd("");
       setGstRegistered(false);
+      setLeadTimeDays("14");
     } catch {
       setError("Could not create business. Is the backend running?");
     } finally {
@@ -90,6 +97,19 @@ export function AddBusinessDialog({ onCreated }: AddBusinessDialogProps) {
                 onCheckedChange={(checked) => setGstRegistered(checked === true)}
               />
               <Label htmlFor="gst">GST registered</Label>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="lead-time">Reminder lead time (days)</Label>
+              <Input
+                id="lead-time"
+                type="number"
+                min={1}
+                max={90}
+                value={leadTimeDays}
+                onChange={(e) => setLeadTimeDays(e.target.value)}
+                required
+              />
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}

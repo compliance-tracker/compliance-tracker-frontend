@@ -73,7 +73,9 @@ describe("request (via api.* methods)", () => {
       status: 200,
       text: async () =>
         JSON.stringify({
-          content: [{ id: 1, name: "Test Co", financialYearEnd: "2026-12-31", gstRegistered: false }],
+          content: [
+            { id: 1, name: "Test Co", financialYearEnd: "2026-12-31", gstRegistered: false, leadTimeDays: 14 },
+          ],
           page: 0,
           size: 20,
           totalElements: 1,
@@ -83,7 +85,9 @@ describe("request (via api.* methods)", () => {
 
     const businesses = await api.getBusinesses();
 
-    expect(businesses).toEqual([{ id: 1, name: "Test Co", financialYearEnd: "2026-12-31", gstRegistered: false }]);
+    expect(businesses).toEqual([
+      { id: 1, name: "Test Co", financialYearEnd: "2026-12-31", gstRegistered: false, leadTimeDays: 14 },
+    ]);
   });
 
   it("returns undefined without throwing for an empty body (e.g. 204 No Content)", async () => {

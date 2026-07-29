@@ -5,6 +5,7 @@ export interface Business {
   name: string;
   financialYearEnd: string; // ISO date, e.g. "2026-12-31"
   gstRegistered: boolean;
+  leadTimeDays: number; // backend issue #53 - how many days ahead of a deadline to remind, 1-90
 }
 
 export type NewBusiness = Omit<Business, "id">;
