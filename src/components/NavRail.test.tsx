@@ -31,6 +31,12 @@ describe("NavRail", () => {
     expect(screen.getByRole("link", { name: "Account" })).toHaveAttribute("href", "/account");
   });
 
+  it("always shows a real Notifications link, regardless of whether a business is selected (issue #73)", () => {
+    renderAt("/businesses");
+
+    expect(screen.getByRole("link", { name: "Notifications" })).toHaveAttribute("href", "/notifications");
+  });
+
   it("disables Overview/Edit business (not real links) when no business is selected", () => {
     renderAt("/businesses");
 

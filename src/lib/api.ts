@@ -1,4 +1,4 @@
-import type { ApiError, Business, NewBusiness, Deadline, Credentials, AuthResponse, WorkPass, NewWorkPass, PageResponse } from "./types";
+import type { ApiError, Business, NewBusiness, Deadline, Credentials, AuthResponse, WorkPass, NewWorkPass, PageResponse, NotificationStatus } from "./types";
 import { auth } from "./auth";
 
 // Thrown by request() on any non-ok response - carries the backend's real ApiError message
@@ -179,4 +179,8 @@ export const api = {
     request<void>(`/api/businesses/${businessId}/work-passes/${workPassId}`, {
       method: "DELETE",
     }),
+
+  // Backend issue #114 - which NotificationSender channel is active, and the from-address if
+  // it's email. App-level server config, not per-account, so there's nothing to set here.
+  getNotificationStatus: () => request<NotificationStatus>("/api/notifications/status"),
 };

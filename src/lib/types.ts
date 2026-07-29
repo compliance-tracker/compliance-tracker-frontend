@@ -63,3 +63,11 @@ export interface PageResponse<T> {
   totalElements: number;
   totalPages: number;
 }
+
+// Mirrors com.chrainx.compliance_tracker.notifications.NotificationStatusResponse (backend issue
+// #114) - fromAddress is only present when channel is "email" (the backend's @JsonInclude.NON_NULL
+// omits it entirely for "logging", not sends null).
+export interface NotificationStatus {
+  channel: "logging" | "email";
+  fromAddress?: string;
+}

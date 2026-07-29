@@ -67,7 +67,8 @@ for watch mode during development.
   `/calendar` (every business's deadlines merged into one month grid + upcoming timeline, issue
   #63), `/businesses/:id` (a business's deadlines + work passes), `/businesses/:id/edit`
   (edit/delete), `/account` (registered email, a disabled "Change password" control, log out —
-  issue #67), and a 404 fallback for anything else. Page-level state (the fetched businesses
+  issue #67), `/notifications` (which reminder channel is currently active — issue #73), and a
+  404 fallback for anything else. Page-level state (the fetched businesses
   list, create/update/delete handlers, `onLogout`) is owned by `App` and passed down to routed
   pages via `<Outlet context={...}/>`/`useOutletContext()` — see `src/components/Shell.tsx`'s
   `ShellContext` type.
@@ -95,7 +96,10 @@ for watch mode during development.
   `ForgotPasswordPage`/`ResetPasswordPage`, issue #69), `VerifyEmailPage` (a lighter, centered
   single-card treatment instead — verification is informational-only and non-blocking, so it
   doesn't carry the same visual weight as a real auth gate; calls the real
-  `POST /api/auth/verify-email` on mount using the URL's `?token=`).
+  `POST /api/auth/verify-email` on mount using the URL's `?token=`), `NotificationsPage`
+  (read-only — which `NotificationSender` channel is active and, if email, its from-address;
+  app-level server config, not a per-account setting, and deliberately no "recently sent" history
+  table since no backend endpoint exists for that — issue #73).
 - `src/components/ui/` — shadcn/ui primitives (owned code, not an npm dependency — copied in
   via the shadcn CLI, edit freely).
 - `src/components/ErrorBoundary.tsx` — top-level React error boundary, wrapped around `<App />`
@@ -143,10 +147,10 @@ exists too — a neutral "check your inbox" page that never reveals whether an e
 real reset-password page reached via an emailed link's token, both showing the backend's actual
 rejection reason (invalid/expired token, weak new password) rather than a generic error. Email
 verification is wired up too (`/verify-email?token=...`) — informational only, nothing in the app
-enforces it. The Harbour Ledger redesign is now complete for its planned scope: design tokens,
-nav rail + routed pages (including an off-canvas mobile drawer), Calendar, Account, and the auth
-pages all match the mockup; a Notifications status page is the one deferred piece, blocked on a
-small backend endpoint that doesn't exist yet (backend issue #114) rather than built with
-invented data. See
+enforces it. **The Harbour Ledger redesign is now fully complete**: design tokens, nav rail +
+routed pages (including an off-canvas mobile drawer), Calendar, Account, Notifications, and the
+auth pages all match the mockup — every page was deliberately deferred rather than built with
+invented data when its backend support didn't exist yet (Notifications waited on backend issue
+#114), and each landed for real once that support shipped. See
 [issues on the frontend repo](https://github.com/compliance-tracker/compliance-tracker-frontend/issues)
 for current progress.

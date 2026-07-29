@@ -1,5 +1,5 @@
 import { NavLink, useParams } from "react-router-dom";
-import { Building2, CalendarDays, LayoutDashboard, Pencil, ShieldCheck, UserRound } from "lucide-react";
+import { Bell, Building2, CalendarDays, LayoutDashboard, Pencil, ShieldCheck, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavRailProps {
@@ -11,9 +11,9 @@ interface NavRailProps {
 
 // The persistent dark "harbour" sidebar (Harbour Ledger design, issue #59/#61) - fixed navy in
 // both light/dark theme (--rail-* tokens in index.css never theme-swap), unlike every other
-// surface in the app. Only real, working nav items are shown - no Notifications/Admin entries
-// yet, since those pages don't exist until their own later steps (a nav rail full of dead links
-// would be worse than a shorter honest one).
+// surface in the app. Only real, working nav items are shown - no Admin entry, since the
+// mockup's Admin Rules page has no backend behind it at all (checked directly - only auth/
+// business/workpass/notifications controllers exist) and won't be built as designed.
 export function NavRail({ className }: NavRailProps) {
   const { id } = useParams<{ id: string }>();
 
@@ -46,6 +46,9 @@ export function NavRail({ className }: NavRailProps) {
       </RailLink>
 
       <NavCaption>Account</NavCaption>
+      <RailLink to="/notifications" icon={Bell}>
+        Notifications
+      </RailLink>
       <RailLink to="/account" icon={UserRound}>
         Account
       </RailLink>

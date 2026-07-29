@@ -277,11 +277,23 @@ real "invalid or expired" message → a missing token shows the right message) �
 after the `isApiError` fix that the race-condition 500 now shows the honest generic fallback
 message instead of the leaked exception text.
 
-Deferred: Notifications status page — no backend endpoint exposes which `NotificationSender`
-channel is active (checked the controllers directly), so building it would mean inventing data.
-Filed backend issue #114 (compliance-tracker#114) requesting a small read-only status endpoint
-and commented on this repo's #39 explaining the block, rather than building nothing or faking it.
-Will resume once that lands.
+**Step 6, #73 (Notifications status page), is done — this completes the Harbour Ledger redesign
+in full, nothing deferred anymore.** Backend #114 shipped (`GET /api/notifications/status`,
+returning `{channel: "logging"}` or `{channel: "email", fromAddress: "..."}`) — noticed it had
+closed while starting this session's work, checked the actual response contract directly against
+`NotificationStatusController`/`NotificationStatusResponse` before writing any frontend code
+against it, rather than assuming the shape from the original request comment. `/notifications`
+shows the active channel + from-address (if email) with an "Active" badge, plus a note that this
+is app-level server config, not per-account — deliberately no "recently sent" history table, since
+no backend endpoint exists for that and building one was never requested (a bigger feature needing
+a persisted send log). Reachable from a new nav-rail "Notifications" item under the existing
+"Account" caption group, matching the mockup's grouping. Verified live against the real backend:
+confirmed the actual currently-active channel ("Logging (development)," this app's zero-config
+default) renders correctly with the real explanatory copy, not placeholder text.
+
+Also noticed while starting this that the backend session had independently fixed the token-
+verification race condition filed as backend issue #115 (found live during #69's work) — no
+action needed on this side, just confirmed it's resolved.
 
 Closed #56 (email verification UI) retroactively — #69 already delivered it under a different
 issue number, keeping the tracker honest rather than leaving a stale duplicate open.
