@@ -148,8 +148,9 @@ this app is a plain Vite SPA using neither RSC nor framework mode, so the adviso
 to how it's actually used here; not treated as blocking, but worth re-checking if this ever
 changes (e.g. a future move to a meta-framework).
 
-#56 (email verification UI, backend #36's frontend counterpart) is filed but not started — lower
-priority since nothing currently enforces `emailVerified` on the backend either.
+(#56, email verification UI, was closed retroactively once #69 delivered it under a different
+issue number — see below. Backend #120 later made verification actually enforced, not just
+informational — see #75 further down.)
 
 #24 (confirmation before destructive actions) is done — its business-delete half already existed
 (`DeleteBusinessDialog`, from #16), so the only real remaining gap was work-pass removal, which
@@ -312,6 +313,36 @@ the check), slides on-screen when the hamburger is tapped, closes on backdrop ta
 automatically after navigating to Calendar — plus confirmed the desktop layout (1280px) is
 completely unaffected by any of this. New `Shell.test.tsx` covers the same open/close/close-on-
 navigate logic at the unit level.
+
+**#75 (register/login flow update for backend #120's enforced email verification) is done** — a
+real breaking change, discovered live-broken rather than found through a routine check: the
+backend expanded #36/#37's "informational only" email verification into an actually-enforced
+requirement, and nothing on this side had caught up, so registration and login no longer worked
+together at all. `api.ts`'s `register` now returns `RegistrationResponse` (`{message}`), not
+`AuthResponse` — it never returns usable tokens anymore, matching the backend's own change (an
+unverified account can't log in, so auto-logging one in was already a dead end). `LoginForm`
+shows a "Check your email" screen on successful registration instead of navigating into the
+dashboard, with a "Resend verification email" button (`api.resendVerification`, added even though
+the issue itself flagged it as optional — without it, a lost verification email leaves a new
+account permanently stuck, since the account already exists and re-registering just hits a 409).
+`login`'s existing `ApiRequestError` handling already surfaced the backend's real 403 message
+("Please verify your email before logging in.") with zero code changes needed — the #52 sweep's
+investment paid off unprompted here.
+
+**Found and fixed a second, genuinely separate bug purely from the live click-through, not
+planned scope:** `VerifyEmailPage`'s effect had no guard against React StrictMode's dev-only
+double-invoke, and unlike an idempotent data fetch, `verifyEmail()` consumes a single-use token -
+the first of the two StrictMode-fired calls succeeds, the second (now correctly rejected by
+backend #115's fix, no longer a 500) can resolve *after* the first and overwrite a true success
+with a false "couldn't verify" error. The standard "ignore a stale response" cleanup pattern
+doesn't fix this specific case (both calls are genuine, with different real outcomes) - fixed
+with a `useRef` guard that survives the synthetic remount, preventing the second call from firing
+at all. See NOTES.md §4x for the full reasoning on why the usual fix doesn't apply here.
+
+Verified live end-to-end against the real backend: register → shown "Check your email," not the
+dashboard → attempt to log in before verifying → real 403 message shown → read the actual
+verification token from Postgres → verify for real → log in again → succeeds, lands in the
+dashboard. Zero console errors.
 
 Open (not started): #7 (deploy — depends on backend #5).
 

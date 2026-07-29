@@ -41,6 +41,13 @@ export interface AuthResponse {
   refreshToken: string;
 }
 
+// Mirrors com.chrainx.compliance_tracker.auth.RegistrationResponse (backend issue #120) -
+// register no longer returns usable tokens at all, since an unverified account can't log in
+// anyway (login now requires emailVerified) - just a human-readable "what to do next" message.
+export interface RegistrationResponse {
+  message: string;
+}
+
 // Mirrors com.chrainx.compliance_tracker.WorkPass (backend) - "business" is @JsonIgnore'd
 // server-side (the caller already knows the business id from the URL), so it never appears here.
 export interface WorkPass {

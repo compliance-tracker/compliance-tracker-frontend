@@ -40,6 +40,13 @@ export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Set on a successful registration (backend issue #120: register no longer returns usable
+  // tokens or logs anyone in - login itself now requires a verified email first). Non-null means
+  // "show the check-your-email screen instead of the form", same as ForgotPasswordPage's own
+  // submitted-state pattern.
+  const [registrationMessage, setRegistrationMessage] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -47,17 +54,19 @@ export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
     setError(null);
 
     try {
-      const response = mode === "login"
-        ? await api.login({ email, password })
-        : await api.register({ email, password });
-
-      auth.setTokens(response.token, response.refreshToken);
-      onAuthenticated();
+      if (mode === "login") {
+        const response = await api.login({ email, password });
+        auth.setTokens(response.token, response.refreshToken);
+        onAuthenticated();
+      } else {
+        const response = await api.register({ email, password });
+        setRegistrationMessage(response.message);
+      }
     } catch (err) {
       // The backend already returns a specific, real message for every login/register failure
-      // (wrong credentials, weak password, email already taken, rate-limited) - showing it
-      // directly is strictly better than the single hardcoded guess this used to make per mode,
-      // which mislabeled e.g. a weak-password rejection as "email may already be taken".
+      // (wrong credentials, weak password, email already taken, rate-limited, or - since issue
+      // #120 - an unverified account trying to log in) - showing it directly is strictly better
+      // than a single hardcoded guess per mode.
       setError(
         err instanceof ApiRequestError
           ? err.message
@@ -68,6 +77,26 @@ export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  async function handleResend() {
+    setResending(true);
+    try {
+      await api.resendVerification(email);
+    } catch {
+      // Deliberately swallowed - same enumeration-avoidance reasoning as forgotPassword, always
+      // shown as "sent" regardless of whether the request itself succeeded.
+    } finally {
+      setResending(false);
+      setResent(true);
+    }
+  }
+
+  function backToLogin() {
+    setRegistrationMessage(null);
+    setMode("login");
+    setPassword("");
+    setResent(false);
   }
 
   return (
@@ -83,76 +112,106 @@ export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
       )}
       <Card className="shadow-sm">
         <CardContent className="space-y-5">
-          {/* Segmented mode toggle - two buttons in one pill, active one lifted with the
-              card's own background/shadow. Replaces the old plain-text link toggle below
-              the form; a two-way switch reads more clearly as "pick one of two modes" than
-              a single line of text that changes meaning depending on which mode you're in. */}
-          <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
-            {(["login", "register"] as const).map((m) => (
-              <button
-                key={m}
-                type="button"
-                className={
-                  m === mode
-                    ? "rounded-md bg-card py-2 text-sm font-semibold shadow-sm"
-                    : "rounded-md py-2 text-sm font-semibold text-muted-foreground"
-                }
-                onClick={() => {
-                  setMode(m);
-                  setError(null);
-                }}
-              >
-                {m === "login" ? "Log in" : "Sign up"}
-              </button>
-            ))}
-          </div>
+          {registrationMessage ? (
+            <>
+              <div>
+                <CardTitle>Check your email</CardTitle>
+                <CardDescription>{registrationMessage}</CardDescription>
+              </div>
 
-          <div>
-            <CardTitle>{mode === "login" ? "Welcome back" : "Create an account"}</CardTitle>
-            <CardDescription>
-              {mode === "login"
-                ? "Access your businesses and their compliance deadlines."
-                : "Track your business's compliance deadlines."}
-            </CardDescription>
-          </div>
+              {resent ? (
+                <p className="text-sm text-muted-foreground">
+                  If that account still needs verifying, another email is on its way.
+                </p>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleResend}
+                  disabled={resending}
+                >
+                  {resending ? "Sending..." : "Resend verification email"}
+                </Button>
+              )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
+              <Button className="w-full" onClick={backToLogin}>
+                Back to log in
+              </Button>
+            </>
+          ) : (
+            <>
+              {/* Segmented mode toggle - two buttons in one pill, active one lifted with the
+                  card's own background/shadow. Replaces the old plain-text link toggle below
+                  the form; a two-way switch reads more clearly as "pick one of two modes" than
+                  a single line of text that changes meaning depending on which mode you're in. */}
+              <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
+                {(["login", "register"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    className={
+                      m === mode
+                        ? "rounded-md bg-card py-2 text-sm font-semibold shadow-sm"
+                        : "rounded-md py-2 text-sm font-semibold text-muted-foreground"
+                    }
+                    onClick={() => {
+                      setMode(m);
+                      setError(null);
+                    }}
+                  >
+                    {m === "login" ? "Log in" : "Sign up"}
+                  </button>
+                ))}
+              </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+              <div>
+                <CardTitle>{mode === "login" ? "Welcome back" : "Create an account"}</CardTitle>
+                <CardDescription>
+                  {mode === "login"
+                    ? "Access your businesses and their compliance deadlines."
+                    : "Track your business's compliance deadlines."}
+                </CardDescription>
+              </div>
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
 
-            <Button type="submit" className="w-full" disabled={submitting}>
-              {submitting ? "Please wait..." : mode === "login" ? "Log in" : "Register"}
-            </Button>
-          </form>
+                <div className="grid gap-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
 
-          {mode === "login" && (
-            <Link
-              to="/forgot-password"
-              className="block text-center text-sm text-muted-foreground hover:underline"
-            >
-              Forgot password?
-            </Link>
+                {error && <p className="text-sm text-destructive">{error}</p>}
+
+                <Button type="submit" className="w-full" disabled={submitting}>
+                  {submitting ? "Please wait..." : mode === "login" ? "Log in" : "Register"}
+                </Button>
+              </form>
+
+              {mode === "login" && (
+                <Link
+                  to="/forgot-password"
+                  className="block text-center text-sm text-muted-foreground hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
