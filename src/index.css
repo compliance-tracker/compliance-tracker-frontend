@@ -6,8 +6,22 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+    /* Deliberately still var(--font-sans), NOT --font-serif - CardTitle (every card/panel
+       header, e.g. "Businesses", "Reminder lead") uses this, and the mockup only puts serif on
+       actual page <h1> titles and the nav/brand wordmark, sparingly - a card header going serif
+       too would defeat that "used sparingly" intent. Page titles get font-serif applied
+       directly instead (see App.tsx). */
     --font-heading: var(--font-sans);
     --font-sans: 'Geist Variable', sans-serif;
+    /* "Harbour Ledger" (frontend issue #59) - serif on page/brand titles only, gives them the
+       weight of an official notice; monospace on every date/countdown figure, so numbers read
+       as measured ledger entries rather than prose. Deliberately no new webfont dependency -
+       both are just system font stacks. */
+    --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    --color-amber: var(--amber);
+    --color-brass: var(--brass);
+    --color-brass-foreground: var(--brass-foreground);
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -48,29 +62,42 @@
     --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* ============================================================
+   "Harbour Ledger" (frontend issue #59) - a compliance register, not a
+   generic SaaS. Deep marine teal + brass (channel-buoy signage) over cool
+   chart-paper neutrals, with a ledger-red for what's overdue. Replaces the
+   nova preset's flat black/white/generic-blue-accent look. Sourced from a
+   design mockup (see NOTES.md - "design-handoff.md", artifact
+   d4f27539-a4f1-410c-b4b6-4ebde8188bbb) that iterated on this in a separate
+   session; values copied as-is from that handoff, not redesigned here.
+   ============================================================ */
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    /* Accent color: the "nova" shadcn preset ships pure black/white/gray with zero color
-       anywhere - this is the one change that actually makes the app look designed rather than
-       a bare components demo. 264 is the same blue hue the preset already used internally for
-       its dark-mode sidebar-primary, just applied consistently everywhere now. */
-    --primary: oklch(0.55 0.22 264);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.55 0.22 264 / 50%);
+    --background: oklch(0.975 0.006 200);
+    --foreground: oklch(0.19 0.025 200);
+    --card: oklch(0.99 0.003 200);
+    --card-foreground: oklch(0.19 0.025 200);
+    --popover: oklch(0.99 0.003 200);
+    --popover-foreground: oklch(0.19 0.025 200);
+    --primary: oklch(0.4 0.07 200);
+    --primary-foreground: oklch(0.98 0.004 200);
+    --secondary: oklch(0.94 0.009 200);
+    --secondary-foreground: oklch(0.19 0.025 200);
+    --muted: oklch(0.94 0.009 200);
+    --muted-foreground: oklch(0.46 0.025 200);
+    --accent: oklch(0.94 0.009 200);
+    --accent-foreground: oklch(0.19 0.025 200);
+    --destructive: oklch(0.5 0.14 32);
+    --border: oklch(0.87 0.012 200);
+    --input: oklch(0.87 0.012 200);
+    --ring: oklch(0.4 0.07 200 / 50%);
+    /* Brass (channel-buoy signage) - the nav rail's active-item accent, brand icon background.
+       Same in both themes, like --rail-* below, since the rail itself never theme-swaps. */
+    --brass: oklch(0.64 0.1 75);
+    --brass-foreground: oklch(0.18 0.02 75);
+    /* Amber - the "due soon"/medium-urgency severity tier (stat tile stripes, urgency badges),
+       distinct from --brass even though both are warm - amber is a semantic severity color that
+       DOES theme-swap, brass is a fixed identity color that doesn't. */
+    --amber: oklch(0.6 0.1 75);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
@@ -79,33 +106,40 @@
     --radius: 0.625rem;
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.55 0.22 264);
+    --sidebar-primary: oklch(0.4 0.07 200);
     --sidebar-primary-foreground: oklch(0.985 0 0);
     --sidebar-accent: oklch(0.97 0 0);
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.55 0.22 264 / 50%);
+    --sidebar-ring: oklch(0.4 0.07 200 / 50%);
 }
 
+/* Populated even though no dark-mode toggle exists yet (issue #20) - the repo's existing
+   .dark-class convention, not a prefers-color-scheme media query, so it's ready the moment a
+   toggle sets this class, rather than silently doing nothing until someone builds the toggle
+   AND remembers to also fill in these values. */
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.65 0.2 264);
-    --primary-foreground: oklch(0.145 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
+    --background: oklch(0.2 0.018 200);
+    --foreground: oklch(0.93 0.008 200);
+    --card: oklch(0.25 0.018 200);
+    --card-foreground: oklch(0.93 0.008 200);
+    --popover: oklch(0.25 0.018 200);
+    --popover-foreground: oklch(0.93 0.008 200);
+    --primary: oklch(0.72 0.09 195);
+    --primary-foreground: oklch(0.16 0.02 200);
+    --secondary: oklch(0.3 0.016 200);
+    --secondary-foreground: oklch(0.93 0.008 200);
+    --muted: oklch(0.3 0.016 200);
+    --muted-foreground: oklch(0.68 0.015 200);
+    --accent: oklch(0.3 0.016 200);
+    --accent-foreground: oklch(0.93 0.008 200);
+    --destructive: oklch(0.68 0.15 30);
     --border: oklch(1 0 0 / 10%);
     --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.65 0.2 264 / 50%);
+    --ring: oklch(0.72 0.09 195 / 50%);
+    --brass: oklch(0.64 0.1 75);
+    --brass-foreground: oklch(0.18 0.02 75);
+    --amber: oklch(0.78 0.11 78);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
@@ -113,12 +147,12 @@
     --chart-5: oklch(0.269 0 0);
     --sidebar: oklch(0.205 0 0);
     --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.72 0.09 195);
+    --sidebar-primary-foreground: oklch(0.16 0.02 200);
     --sidebar-accent: oklch(0.269 0 0);
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.65 0.2 264 / 50%);
+    --sidebar-ring: oklch(0.72 0.09 195 / 50%);
 }
 
 @layer base {
@@ -131,4 +165,14 @@
   html {
     @apply font-sans;
     }
+}
+
+/* AmbientBackground's animations (issue #59) - motion-safe: already respects
+   prefers-reduced-motion via Tailwind's variant, no separate media query needed here. */
+@keyframes sounding-breathe {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.03); }
+}
+@keyframes sounding-rotate {
+  to { transform: rotate(360deg); }
 }

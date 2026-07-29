@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Building2, CheckCircle2, ShieldCheck, XCircle } from "lucide-react";
 import { AddBusinessDialog } from "@/components/AddBusinessDialog";
+import { AmbientBackground } from "@/components/AmbientBackground";
 import { BusinessList } from "@/components/BusinessList";
 import { DeadlinesPanel } from "@/components/DeadlinesPanel";
 import { LoginForm } from "@/components/LoginForm";
@@ -105,15 +106,18 @@ function App() {
   const gstRegisteredCount = businesses.filter((b) => b.gstRegistered).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-muted/40 to-background">
-      <div className="mx-auto max-w-6xl p-8 space-y-8">
-        <div className="flex items-center justify-between">
+    <div className="relative min-h-screen bg-background">
+      <AmbientBackground />
+      <div className="relative z-10 mx-auto max-w-6xl p-8 space-y-8">
+        {/* Ledger hairline (issue #59) - a rule beneath the page header, like a register page's
+            ruled margin. The one recurring structural device across every page. */}
+        <div className="flex items-center justify-between gap-4 border-b border-border pb-4">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
               <ShieldCheck className="h-6 w-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Compliance Tracker</h1>
+              <h1 className="font-serif text-2xl font-semibold tracking-tight">Compliance Tracker</h1>
               <p className="text-sm text-muted-foreground">
                 Reminder/tracking tool, not compliance advice — always verify against the official source.
               </p>

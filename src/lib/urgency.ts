@@ -14,9 +14,12 @@ export function daysUntil(dueDate: string): number {
 // in a year. Three tiers: overdue/soon (red), coming up within a quarter (amber), everything
 // else (neutral).
 export function urgencyClasses(days: number): string {
-  if (days <= 30) return "bg-destructive/10 text-destructive";
-  if (days <= 90) return "bg-amber-500/10 text-amber-700 dark:text-amber-500";
-  return "bg-muted text-muted-foreground";
+  // font-mono - these badges carry a figure ("18d left"), unlike a plain status/prose badge
+  // (e.g. "Registered"), so the number reads as measured rather than looking oddly technical
+  // applied everywhere (Harbour Ledger, issue #59).
+  if (days <= 30) return "bg-destructive/10 text-destructive font-mono";
+  if (days <= 90) return "bg-amber/14 text-amber font-mono";
+  return "bg-muted text-muted-foreground font-mono";
 }
 
 export function urgencyLabel(days: number): string {

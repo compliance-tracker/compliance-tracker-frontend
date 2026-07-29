@@ -131,7 +131,7 @@ export function BusinessList({ businesses, selectedId, onSelect, onUpdated, onDe
                       )}
                     >
                       <TableCell className="font-medium">{b.name}</TableCell>
-                      <TableCell>{b.financialYearEnd}</TableCell>
+                      <TableCell className="font-mono">{b.financialYearEnd}</TableCell>
                       <TableCell>
                         {b.gstRegistered ? (
                           <Badge>Registered</Badge>

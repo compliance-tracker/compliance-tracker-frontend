@@ -73,7 +73,12 @@ export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* Branding/value-prop panel - hidden on small screens, since there's no room for it
           alongside the form without both feeling cramped. */}
-      <div className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-[oklch(0.32_0.12_264)] via-primary to-[oklch(0.5_0.2_280)] p-12 text-primary-foreground lg:flex">
+      {/* Gradient endpoints kept in the same teal family as --primary (issue #59) - the old
+          blue-264/violet-280 endpoints were a leftover from the previous palette and clashed
+          outright with the new harbour teal once just --primary changed underneath them. A full
+          brand-panel treatment (the mockup's fixed dark rail-colored panel) is a later, separate
+          phase - this is the minimal fix so the gradient isn't visibly broken in the meantime. */}
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-[oklch(0.28_0.05_200)] via-primary to-[oklch(0.5_0.1_195)] p-12 text-primary-foreground lg:flex">
         {/* Purely decorative blurred shapes - texture/depth so the panel doesn't read as a
             flat single-color fill. pointer-events-none + aria-hidden since they carry no
             content, just visual interest. */}
