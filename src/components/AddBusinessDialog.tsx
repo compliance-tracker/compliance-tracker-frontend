@@ -12,7 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { api } from "@/lib/api";
+import { api, ApiRequestError } from "@/lib/api";
 import type { Business } from "@/lib/types";
 
 interface AddBusinessDialogProps {
@@ -25,6 +25,7 @@ export function AddBusinessDialog({ onCreated }: AddBusinessDialogProps) {
   const [financialYearEnd, setFinancialYearEnd] = useState("");
   const [gstRegistered, setGstRegistered] = useState(false);
   const [leadTimeDays, setLeadTimeDays] = useState("14");
+  const [incorporationDate, setIncorporationDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +40,7 @@ export function AddBusinessDialog({ onCreated }: AddBusinessDialogProps) {
         financialYearEnd,
         gstRegistered,
         leadTimeDays: Number(leadTimeDays),
+        incorporationDate: incorporationDate || null,
       });
       onCreated(created);
       setOpen(false);
@@ -46,8 +48,13 @@ export function AddBusinessDialog({ onCreated }: AddBusinessDialogProps) {
       setFinancialYearEnd("");
       setGstRegistered(false);
       setLeadTimeDays("14");
-    } catch {
-      setError("Could not create business. Is the backend running?");
+      setIncorporationDate("");
+    } catch (err) {
+      // A first-year ACRA validation failure (backend issue #31) comes back as a real,
+      // specific ApiRequestError message ("...cannot be more than 18 months after...") - showing
+      // it is the entire point of that check existing; only fall back to a generic message for
+      // anything that isn't a structured backend error (network failure, backend down, etc.).
+      setError(err instanceof ApiRequestError ? err.message : "Could not create business. Is the backend running?");
     } finally {
       setSubmitting(false);
     }
@@ -109,6 +116,16 @@ export function AddBusinessDialog({ onCreated }: AddBusinessDialogProps) {
                 value={leadTimeDays}
                 onChange={(e) => setLeadTimeDays(e.target.value)}
                 required
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="incorporation-date">Incorporation date (optional)</Label>
+              <Input
+                id="incorporation-date"
+                type="date"
+                value={incorporationDate}
+                onChange={(e) => setIncorporationDate(e.target.value)}
               />
             </div>
 

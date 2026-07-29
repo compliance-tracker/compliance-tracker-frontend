@@ -52,13 +52,16 @@ for watch mode during development.
   `VITE_API_BASE_URL`. Attaches the stored access token (if any) to every request automatically.
   On a `401`, transparently exchanges the refresh token for a new pair and retries once before
   giving up — a real session only actually ends (bounced to the login screen with an explanation)
-  if that refresh fails too, not on the access token's first expiry.
+  if that refresh fails too, not on the access token's first expiry. Throws an `ApiRequestError`
+  (carrying the backend's real `{error, message}` body) on any other non-2xx response where the
+  backend actually sent one, so a caller can show the genuine reason instead of a generic string.
 - `src/components/` — `LoginForm` (login/register, toggles between the two), `StatCard`
   (summary tiles), `BusinessList` (search by name, filter by GST status, sort by name/FYE with a
   direction toggle — all client-side over the already-fetched list, plus each business's own
   reminder lead time and `EditBusinessDialog`/`DeleteBusinessDialog` actions per row),
-  `AddBusinessDialog` (name, financial year end, GST status, and reminder lead time in days —
-  defaults to 14, 1-90), `DeadlinesPanel` (deadlines colored by
+  `AddBusinessDialog` (name, financial year end, GST status, reminder lead time in days —
+  defaults to 14, 1-90 — and an optional incorporation date, used to validate a first financial
+  year doesn't run more than 18 months past incorporation), `DeadlinesPanel` (deadlines colored by
   urgency: red ≤30 days, amber ≤90 days, neutral further out), `WorkPassesPanel` (view/add/remove
   a selected business's employee work passes, driving the Employment Pass renewal deadlines,
   same urgency-badge convention as `DeadlinesPanel` — shared logic lives in `src/lib/urgency.ts`).
@@ -77,6 +80,8 @@ is a real dashboard (summary stat tiles, side-by-side business list + deadlines 
 screens, urgency-colored deadline badges), not just default component styling. A top-level error
 boundary catches any otherwise-uncaught render error with a friendly fallback rather than a blank
 screen. Each business has its own configurable reminder lead time (1-90 days, default 14, set in
-`AddBusinessDialog`/`EditBusinessDialog`, shown in the business list). See
+`AddBusinessDialog`/`EditBusinessDialog`, shown in the business list). An optional incorporation
+date can be set on creation, validated against a real first-year ACRA rule (Companies Act 1967
+s.198's 18-month cap) with the backend's actual rejection reason shown, not a generic error. See
 [issues on the frontend repo](https://github.com/compliance-tracker/compliance-tracker-frontend/issues)
 for current progress.

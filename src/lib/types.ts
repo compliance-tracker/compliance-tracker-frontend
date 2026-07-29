@@ -6,6 +6,18 @@ export interface Business {
   financialYearEnd: string; // ISO date, e.g. "2026-12-31"
   gstRegistered: boolean;
   leadTimeDays: number; // backend issue #53 - how many days ahead of a deadline to remind, 1-90
+  // backend issue #31 - optional, only meaningful/validated at creation (a first financial year
+  // can't run more than 18 months past incorporation, Companies Act 1967 s.198). null when never
+  // set - most businesses using this app already have a normal, non-first financial year.
+  incorporationDate: string | null;
+}
+
+// Mirrors com.chrainx.compliance_tracker.ApiError (backend issue #47) - every non-2xx response
+// from a business/auth endpoint returns this shape instead of an empty body or a framework
+// default.
+export interface ApiError {
+  error: string;
+  message: string;
 }
 
 export type NewBusiness = Omit<Business, "id">;
