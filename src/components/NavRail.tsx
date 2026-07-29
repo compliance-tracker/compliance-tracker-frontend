@@ -1,5 +1,5 @@
 import { NavLink, useParams } from "react-router-dom";
-import { Building2, CalendarDays, LogOut, Pencil, ShieldCheck, Users } from "lucide-react";
+import { Building2, CalendarDays, LayoutDashboard, LogOut, Pencil, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavRailProps {
@@ -32,8 +32,11 @@ export function NavRail({ onLogout }: NavRailProps) {
       </RailLink>
 
       <NavCaption>Selected business</NavCaption>
-      <RailLink to={id ? `/businesses/${id}` : null} icon={Users}>
-        Work passes
+      {/* Labeled "Overview", not "Work passes" - this page shows DeadlinesPanel too (issue #61's
+          deliberate combining of the two, since the redesigned IA has no separate per-business
+          deadlines page). "Work passes" undersold what's actually there (issue #65). */}
+      <RailLink to={id ? `/businesses/${id}` : null} icon={LayoutDashboard}>
+        Overview
       </RailLink>
       <RailLink to={id ? `/businesses/${id}/edit` : null} icon={Pencil}>
         Edit business

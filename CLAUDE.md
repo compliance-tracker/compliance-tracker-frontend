@@ -190,7 +190,7 @@ page replacing `EditBusinessDialog`'s modal, with a danger-zone delete reusing
 `DeleteBusinessDialog`, repurposed from an icon-trigger to a full button), and a 404 fallback
 (`NotFoundPage`) for anything else. `NavRail` reads the current `:id` via `useParams()` (works
 from a layout route's `element`, not just the leaf, since react-router v6 merges params across
-the whole matched branch) to decide whether "Work passes"/"Edit business" are real links or
+the whole matched branch) to decide whether "Overview"/"Edit business" are real links or
 disabled placeholders. `App` itself now only owns auth gating + the businesses list/CRUD
 handlers, passed to routed pages via `<Outlet context={...}/>`/`useOutletContext()`
 (`Shell.tsx`'s `ShellContext`) rather than a new Context API. Deliberately did NOT drop the
@@ -203,7 +203,7 @@ reflected → a bad URL shows 404 → a well-formed but nonexistent business id 
 found" — zero console errors throughout).
 
 Step 3, #63 (Calendar page, closes #19 too), is done — `CalendarPage` at `/calendar`, reachable
-from the nav rail's top-level "Businesses" caption group (unlike "Work passes"/"Edit business",
+from the nav rail's top-level "Businesses" caption group (unlike "Overview"/"Edit business",
 always a real link since it isn't scoped to a selected business). No backend endpoint returns
 deadlines across every business at once, so it fetches each business's own
 `GET /api/businesses/{id}/deadlines` via `Promise.all` and merges them client-side (fine at this
@@ -220,6 +220,12 @@ with real deadlines merging correctly into the timeline (sorted earliest-first r
 which business), the month grid rendering, and the brick-red ambient tint actually visible on
 this page specifically (confirmed via screenshot, not just that the prop was passed) — zero
 console errors.
+
+#65: the "Selected business" nav item pointing to `/businesses/:id` was labeled "Work passes"
+even though that page shows `DeadlinesPanel` too (the deliberate #61 combination) — the user
+flagged this as reading like a mistake, not an intentional deviation. Renamed to "Overview" to
+match what the page actually shows, rather than leaving a technically-correct-but-misleading
+label. Verified live that the rename didn't break the disabled→enabled link behavior.
 
 Remaining steps (not started): Account page → Notifications status page (read-only channel info
 only, no history table — no backend endpoint for that) → reskin the auth pages properly + build
