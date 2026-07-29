@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { BusinessDetailPage } from "@/components/BusinessDetailPage";
 import { BusinessesPage } from "@/components/BusinessesPage";
+import { CalendarPage } from "@/components/CalendarPage";
 import { EditBusinessPage } from "@/components/EditBusinessPage";
 import { LoginForm } from "@/components/LoginForm";
 import { NotFoundPage } from "@/components/NotFoundPage";
@@ -107,6 +108,7 @@ function App() {
       <Route element={<Shell context={shellContext} onLogout={handleLogout} />}>
         <Route index element={<Navigate to="/businesses" replace />} />
         <Route path="businesses" element={<BusinessesPage />} />
+        <Route path="calendar" element={<CalendarPage />} />
         <Route path="businesses/:id" element={<BusinessDetailPage />} />
         <Route path="businesses/:id/edit" element={<EditBusinessPage />} />
         <Route path="*" element={<NotFoundPage />} />

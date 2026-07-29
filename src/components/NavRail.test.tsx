@@ -19,6 +19,12 @@ function renderAt(path: string) {
 }
 
 describe("NavRail", () => {
+  it("always shows a real Calendar link, regardless of whether a business is selected (issue #63)", () => {
+    renderAt("/businesses");
+
+    expect(screen.getByRole("link", { name: "Calendar" })).toHaveAttribute("href", "/calendar");
+  });
+
   it("disables Work passes/Edit business (not real links) when no business is selected", () => {
     renderAt("/businesses");
 

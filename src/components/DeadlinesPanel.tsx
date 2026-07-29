@@ -4,14 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { daysUntil, urgencyClasses, urgencyLabel } from "@/lib/urgency";
+import { OBLIGATION_LABELS, daysUntil, urgencyClasses, urgencyLabel } from "@/lib/urgency";
 import type { Business, Deadline } from "@/lib/types";
-
-const OBLIGATION_LABELS: Record<string, string> = {
-  ACRA_ANNUAL_RETURN: "ACRA Annual Return",
-  GST_F5: "GST F5 Filing",
-  WORK_PASS_RENEWAL: "Work Pass Renewal",
-};
 
 interface DeadlinesPanelProps {
   business: Business | null;

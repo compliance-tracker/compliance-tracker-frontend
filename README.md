@@ -59,14 +59,16 @@ for watch mode during development.
   every form (login/register, add/edit/delete business, work passes) does this now.
 - **Routing** (`main.tsx`'s `BrowserRouter`) — `/forgot-password`, `/reset-password?token=...`
   (issue #55), and everything else under `App`, which (once authenticated) renders a persistent
-  `NavRail` + routed pages (issue #61): `/businesses` (list), `/businesses/:id` (a business's
-  deadlines + work passes), `/businesses/:id/edit` (edit/delete), and a 404 fallback for anything
-  else. Page-level state (the fetched businesses list, create/update/delete handlers) is owned by
-  `App` and passed down to routed pages via `<Outlet context={...}/>`/`useOutletContext()` — see
-  `src/components/Shell.tsx`'s `ShellContext` type.
+  `NavRail` + routed pages (issue #61): `/businesses` (list), `/calendar` (every business's
+  deadlines merged into one month grid + upcoming timeline, issue #63), `/businesses/:id` (a
+  business's deadlines + work passes), `/businesses/:id/edit` (edit/delete), and a 404 fallback
+  for anything else. Page-level state (the fetched businesses list, create/update/delete
+  handlers) is owned by `App` and passed down to routed pages via `<Outlet context={...}/>`/
+  `useOutletContext()` — see `src/components/Shell.tsx`'s `ShellContext` type.
 - `src/components/` — `LoginForm` (login/register, toggles between the two), `NavRail` (the fixed
   dark sidebar; "Work passes"/"Edit business" are disabled placeholders until a business is
-  selected, real links once one is), `StatCard` (summary tiles, with a `severity` prop driving a
+  selected, real links once one is), `CalendarPage` (fetches every business's deadlines and
+  merges them client-side — no combined backend endpoint exists), `StatCard` (summary tiles, with a `severity` prop driving a
   top color stripe), `BusinessesPage` (stat tiles + `BusinessList`, the list's own "View" link
   navigates to a business's detail page), `BusinessList` (search by name, filter by GST status,
   sort by name/FYE with a direction toggle, all client-side over the already-fetched list),
@@ -85,7 +87,9 @@ for watch mode during development.
   fallback with a reload button instead of a blank white screen.
 - `src/components/AmbientBackground.tsx` — a fixed, low-opacity "depth-sounding" motif (concentric
   rings + a slow rotating sweep) behind all page content, part of the "Harbour Ledger" design
-  (issue #59). Respects `prefers-reduced-motion` via Tailwind's `motion-safe:` variant.
+  (issue #59). Respects `prefers-reduced-motion` via Tailwind's `motion-safe:` variant. Re-tints
+  per section (issue #63) — teal by default, brass on a business's own pages, brick-red on
+  Calendar — decided by `Shell.tsx` from the current route.
 
 ## Design system
 
