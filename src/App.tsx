@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+import { AccountPage } from "@/components/AccountPage";
 import { BusinessDetailPage } from "@/components/BusinessDetailPage";
 import { BusinessesPage } from "@/components/BusinessesPage";
 import { CalendarPage } from "@/components/CalendarPage";
@@ -101,16 +102,18 @@ function App() {
     onCreated: handleCreated,
     onUpdated: handleUpdated,
     onDeleted: handleDeleted,
+    onLogout: handleLogout,
   };
 
   return (
     <Routes>
-      <Route element={<Shell context={shellContext} onLogout={handleLogout} />}>
+      <Route element={<Shell context={shellContext} />}>
         <Route index element={<Navigate to="/businesses" replace />} />
         <Route path="businesses" element={<BusinessesPage />} />
         <Route path="calendar" element={<CalendarPage />} />
         <Route path="businesses/:id" element={<BusinessDetailPage />} />
         <Route path="businesses/:id/edit" element={<EditBusinessPage />} />
+        <Route path="account" element={<AccountPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

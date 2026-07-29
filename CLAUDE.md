@@ -227,9 +227,23 @@ flagged this as reading like a mistake, not an intentional deviation. Renamed to
 match what the page actually shows, rather than leaving a technically-correct-but-misleading
 label. Verified live that the rename didn't break the disabled→enabled link behavior.
 
-Remaining steps (not started): Account page → Notifications status page (read-only channel info
-only, no history table — no backend endpoint for that) → reskin the auth pages properly + build
-Verify Email (#56).
+Step 4, #67 (Account page), is done — `/account`, reachable from a new nav-rail "Account" caption
+group (always a real link, same as Calendar). Shows the registered email read-only (decoded from
+the JWT access token's `sub` claim via a new `auth.getEmail()` — no backend "current user"
+endpoint exists or was needed, the frontend already holds everything required), a disabled
+"Change password" button with an honest "Coming soon" badge (no backend endpoint for that
+either), and Log out. Moved `onLogout` from a separate `Shell` prop into `ShellContext` itself
+(passed via `<Outlet context={...}/>`) now that a routed page (`AccountPage`) is what actually
+calls it — `NavRail` no longer needs it at all, since its own temporary bottom-pinned Log out
+button (added in #61 specifically as a stopgap, commented "to move once Account ships") is
+deleted now that its real home exists. Verified live via Playwright: confirmed the nav rail no
+longer has any Log out button, the Account page shows the actual registered email (not a
+placeholder), the Change-password control is genuinely disabled, and clicking Log out from its
+new location still actually logs out and returns to the login screen — zero console errors.
+
+Remaining steps (not started): Notifications status page (read-only channel info only, no
+history table — no backend endpoint for that) → reskin the auth pages properly + build Verify
+Email (#56).
 
 Open (not started): #7 (deploy — depends on backend #5).
 

@@ -61,9 +61,10 @@ for watch mode during development.
   (issue #55), and everything else under `App`, which (once authenticated) renders a persistent
   `NavRail` + routed pages (issue #61): `/businesses` (list), `/calendar` (every business's
   deadlines merged into one month grid + upcoming timeline, issue #63), `/businesses/:id` (a
-  business's deadlines + work passes), `/businesses/:id/edit` (edit/delete), and a 404 fallback
-  for anything else. Page-level state (the fetched businesses list, create/update/delete
-  handlers) is owned by `App` and passed down to routed pages via `<Outlet context={...}/>`/
+  business's deadlines + work passes), `/businesses/:id/edit` (edit/delete), `/account` (registered
+  email, a disabled "Change password" control, log out — issue #67), and a 404 fallback for
+  anything else. Page-level state (the fetched businesses list, create/update/delete handlers,
+  `onLogout`) is owned by `App` and passed down to routed pages via `<Outlet context={...}/>`/
   `useOutletContext()` — see `src/components/Shell.tsx`'s `ShellContext` type.
 - `src/components/` — `LoginForm` (login/register, toggles between the two), `NavRail` (the fixed
   dark sidebar; "Overview"/"Edit business" are disabled placeholders until a business is
@@ -79,7 +80,10 @@ for watch mode during development.
   neutral further out; work passes drive the Employment Pass renewal deadlines, same urgency-badge
   convention, shared logic in `src/lib/urgency.ts`; removing a work pass requires confirming
   first), `EditBusinessPage` (a full page — the old `EditBusinessDialog` modal's replacement —
-  plus a danger-zone delete reusing `DeleteBusinessDialog`'s confirmation).
+  plus a danger-zone delete reusing `DeleteBusinessDialog`'s confirmation), `AccountPage`
+  (registered email — decoded from the JWT's `sub` claim via `auth.getEmail()`, no separate
+  "current user" API call needed — a disabled "Change password" control, and log out, moved here
+  from a temporary placeholder button on the nav rail once this page existed to hold it).
 - `src/components/ui/` — shadcn/ui primitives (owned code, not an npm dependency — copied in
   via the shadcn CLI, edit freely).
 - `src/components/ErrorBoundary.tsx` — top-level React error boundary, wrapped around `<App />`

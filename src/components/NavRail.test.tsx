@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { NavRail } from "./NavRail";
@@ -10,9 +10,9 @@ function renderAt(path: string) {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
-        <Route path="/businesses" element={<NavRail onLogout={vi.fn()} />} />
-        <Route path="/businesses/:id" element={<NavRail onLogout={vi.fn()} />} />
-        <Route path="/businesses/:id/edit" element={<NavRail onLogout={vi.fn()} />} />
+        <Route path="/businesses" element={<NavRail />} />
+        <Route path="/businesses/:id" element={<NavRail />} />
+        <Route path="/businesses/:id/edit" element={<NavRail />} />
       </Routes>
     </MemoryRouter>,
   );
@@ -23,6 +23,12 @@ describe("NavRail", () => {
     renderAt("/businesses");
 
     expect(screen.getByRole("link", { name: "Calendar" })).toHaveAttribute("href", "/calendar");
+  });
+
+  it("always shows a real Account link, regardless of whether a business is selected (issue #67)", () => {
+    renderAt("/businesses");
+
+    expect(screen.getByRole("link", { name: "Account" })).toHaveAttribute("href", "/account");
   });
 
   it("disables Overview/Edit business (not real links) when no business is selected", () => {
@@ -46,20 +52,5 @@ describe("NavRail", () => {
 
     expect(screen.getByRole("link", { name: "Edit business" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Overview" })).not.toHaveAttribute("aria-current");
-  });
-
-
-  it("calls onLogout when the Log out button is clicked", async () => {
-    const onLogout = vi.fn();
-    render(
-      <MemoryRouter initialEntries={["/businesses"]}>
-        <Routes>
-          <Route path="/businesses" element={<NavRail onLogout={onLogout} />} />
-        </Routes>
-      </MemoryRouter>,
-    );
-
-    screen.getByRole("button", { name: "Log out" }).click();
-    expect(onLogout).toHaveBeenCalledOnce();
   });
 });
