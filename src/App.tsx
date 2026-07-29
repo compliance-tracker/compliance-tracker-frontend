@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
-import { Building2, CheckCircle2, ShieldCheck, XCircle } from "lucide-react";
-import { AddBusinessDialog } from "@/components/AddBusinessDialog";
-import { AmbientBackground } from "@/components/AmbientBackground";
-import { BusinessList } from "@/components/BusinessList";
-import { DeadlinesPanel } from "@/components/DeadlinesPanel";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { BusinessDetailPage } from "@/components/BusinessDetailPage";
+import { BusinessesPage } from "@/components/BusinessesPage";
+import { EditBusinessPage } from "@/components/EditBusinessPage";
 import { LoginForm } from "@/components/LoginForm";
-import { StatCard } from "@/components/StatCard";
-import { WorkPassesPanel } from "@/components/WorkPassesPanel";
-import { Button } from "@/components/ui/button";
+import { NotFoundPage } from "@/components/NotFoundPage";
+import { Shell } from "@/components/Shell";
 import { api, registerSessionExpiredHandler } from "@/lib/api";
 import { auth } from "@/lib/auth";
 import type { Business } from "@/lib/types";
@@ -17,15 +15,12 @@ function App() {
   // doesn't bounce a logged-in user back to the login screen.
   const [isAuthenticated, setIsAuthenticated] = useState(() => auth.getToken() !== null);
   const [businesses, setBusinesses] = useState<Business[]>([]);
-  const [selected, setSelected] = useState<Business | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Set when a request comes back 401 and a silent refresh (backend issue #26) fails too - shown
   // on the login screen so the redirect there is explained, not just an unexplained jump back
   // mid-session (issue #17).
   const [sessionMessage, setSessionMessage] = useState<string | null>(null);
-  // Bumped whenever a work pass is added/removed, so DeadlinesPanel knows to refetch even
-  // though `selected` itself hasn't changed (see DeadlinesPanel's refreshKey prop).
-  const [deadlinesRefreshKey, setDeadlinesRefreshKey] = useState(0);
 
   // api.ts's request() calls this from wherever a 401 turns up - any authenticated call, not
   // just the initial business list fetch - once refreshing the access token has already failed
@@ -41,6 +36,7 @@ function App() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
+    setLoading(true);
     api
       .getBusinesses()
       .then(setBusinesses)
@@ -52,7 +48,8 @@ function App() {
         if (!err.message.includes("401")) {
           setError("Could not reach the backend. Is it running on port 8081?");
         }
-      });
+      })
+      .finally(() => setLoading(false));
   }, [isAuthenticated]);
 
   function handleCreated(business: Business) {
@@ -61,16 +58,10 @@ function App() {
 
   function handleUpdated(business: Business) {
     setBusinesses((prev) => prev.map((b) => (b.id === business.id ? business : b)));
-    // Keep `selected` in sync too - it's a separate copy of the same business, not a reference
-    // into the `businesses` array, so editing (e.g. a new FYE) wouldn't otherwise be reflected
-    // in DeadlinesPanel/WorkPassesPanel's "{business.name} — ..." headers or refetch anything.
-    setSelected((prev) => (prev?.id === business.id ? business : prev));
-    setDeadlinesRefreshKey((k) => k + 1);
   }
 
   function handleDeleted(businessId: number) {
     setBusinesses((prev) => prev.filter((b) => b.id !== businessId));
-    setSelected((prev) => (prev?.id === businessId ? null : prev));
   }
 
   async function handleLogout() {
@@ -87,7 +78,6 @@ function App() {
     auth.clearToken();
     setIsAuthenticated(false);
     setBusinesses([]);
-    setSelected(null);
     setSessionMessage(null);
   }
 
@@ -103,63 +93,25 @@ function App() {
     );
   }
 
-  const gstRegisteredCount = businesses.filter((b) => b.gstRegistered).length;
+  const shellContext = {
+    businesses,
+    loading,
+    error,
+    onCreated: handleCreated,
+    onUpdated: handleUpdated,
+    onDeleted: handleDeleted,
+  };
 
   return (
-    <div className="relative min-h-screen bg-background">
-      <AmbientBackground />
-      <div className="relative z-10 mx-auto max-w-6xl p-8 space-y-8">
-        {/* Ledger hairline (issue #59) - a rule beneath the page header, like a register page's
-            ruled margin. The one recurring structural device across every page. */}
-        <div className="flex items-center justify-between gap-4 border-b border-border pb-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-              <ShieldCheck className="h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="font-serif text-2xl font-semibold tracking-tight">Compliance Tracker</h1>
-              <p className="text-sm text-muted-foreground">
-                Reminder/tracking tool, not compliance advice — always verify against the official source.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <AddBusinessDialog onCreated={handleCreated} />
-            <Button variant="outline" onClick={handleLogout}>
-              Log out
-            </Button>
-          </div>
-        </div>
-
-        {error && (
-          <p className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error}
-          </p>
-        )}
-
-        <div className="grid gap-4 sm:grid-cols-3">
-          <StatCard label="Businesses tracked" value={businesses.length} icon={Building2} />
-          <StatCard label="GST-registered" value={gstRegisteredCount} icon={CheckCircle2} />
-          <StatCard label="Not GST-registered" value={businesses.length - gstRegisteredCount} icon={XCircle} />
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <BusinessList
-            businesses={businesses}
-            selectedId={selected?.id ?? null}
-            onSelect={setSelected}
-            onUpdated={handleUpdated}
-            onDeleted={handleDeleted}
-          />
-          <DeadlinesPanel business={selected} refreshKey={deadlinesRefreshKey} />
-        </div>
-
-        <WorkPassesPanel
-          business={selected}
-          onWorkPassesChanged={() => setDeadlinesRefreshKey((k) => k + 1)}
-        />
-      </div>
-    </div>
+    <Routes>
+      <Route element={<Shell context={shellContext} onLogout={handleLogout} />}>
+        <Route index element={<Navigate to="/businesses" replace />} />
+        <Route path="businesses" element={<BusinessesPage />} />
+        <Route path="businesses/:id" element={<BusinessDetailPage />} />
+        <Route path="businesses/:id/edit" element={<EditBusinessPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
   );
 }
 

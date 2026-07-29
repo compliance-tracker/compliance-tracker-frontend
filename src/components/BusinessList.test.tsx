@@ -1,6 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { BusinessList } from "./BusinessList";
 import type { Business } from "@/lib/types";
 
@@ -12,13 +13,9 @@ const businesses: Business[] = [
 
 function renderList(list: Business[] = businesses) {
   return render(
-    <BusinessList
-      businesses={list}
-      selectedId={null}
-      onSelect={vi.fn()}
-      onUpdated={vi.fn()}
-      onDeleted={vi.fn()}
-    />
+    <MemoryRouter>
+      <BusinessList businesses={list} />
+    </MemoryRouter>,
   );
 }
 
