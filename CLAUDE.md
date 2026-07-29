@@ -69,6 +69,13 @@ against the real backend (registered, added a business, confirmed it renders wit
 errors) — a mocked-`fetch` unit test alone can't prove the real endpoint's shape actually matches
 what the mock assumes.
 
+#23 (React error boundary) is done — `src/components/ErrorBoundary.tsx`, wrapped around `<App />`
+in `main.tsx`. Has to be a class component (`static getDerivedStateFromError` +
+`componentDidCatch`) since error boundaries have no hook equivalent yet, the one deliberate
+exception to this codebase otherwise being all-functional components. A single boundary at the
+top for the whole app, not one per panel — revisit only if a future feature makes losing one
+broken panel while keeping the rest alive actually worth the extra complexity. See NOTES.md §4i.
+
 Open (not started): #7 (deploy — depends on backend #5).
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.
