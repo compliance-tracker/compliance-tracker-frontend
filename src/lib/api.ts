@@ -13,12 +13,21 @@ export class ApiRequestError extends Error {
   }
 }
 
+// Spring Boot's own default error page (an uncaught exception the backend never turned into a
+// real ApiError - a genuine 500, never an intentional one) happens to serialize with `error` and
+// `message` string fields too - by coincidence, the exact same two keys our own ApiError record
+// has. Found live (frontend issue #69's Verify Email work, backend issue #115): a raw Hibernate
+// exception message leaked straight onto the page because the old check here matched Spring's
+// default shape as if it were our own. Spring's version always carries at least `timestamp`,
+// `status`, and `path` alongside them; our ApiError record only ever serializes exactly
+// `{error, message}`, nothing else - checking the key count is what tells the two apart.
 function isApiError(body: unknown): body is ApiError {
   return (
     typeof body === "object" &&
     body !== null &&
     typeof (body as ApiError).error === "string" &&
-    typeof (body as ApiError).message === "string"
+    typeof (body as ApiError).message === "string" &&
+    Object.keys(body).length === 2
   );
 }
 
@@ -123,6 +132,11 @@ export const api = {
       { method: "POST", body: JSON.stringify({ token, newPassword }) },
       true,
     ),
+
+  // 401 (invalid/expired/already-used token) via ApiRequestError (backend issue #36). Verifying
+  // is informational only - nothing in the app currently gates on the result.
+  verifyEmail: (token: string) =>
+    request<void>("/api/auth/verify-email", { method: "POST", body: JSON.stringify({ token }) }, true),
 
   // Backend now returns a PageResponse envelope, not a bare array (issue #49 / this issue #46)
   // - unwraps .content immediately so every existing caller keeps working unchanged. The

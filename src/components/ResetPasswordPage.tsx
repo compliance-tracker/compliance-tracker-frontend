@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ShieldCheck } from "lucide-react";
+import { AuthShell } from "@/components/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,57 +35,51 @@ export function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-muted/40 to-background p-8">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-            <ShieldCheck className="h-7 w-7" />
+    <AuthShell
+      brandHeading="Choose a new password."
+      brandDescription="Resetting it signs out every other session on your account, everywhere."
+    >
+      <Card className="shadow-sm">
+        <CardContent className="space-y-5">
+          <div>
+            <CardTitle>Set a new password</CardTitle>
+            <CardDescription>Choose a new password for your account.</CardDescription>
           </div>
-          <h1 className="text-xl font-semibold tracking-tight">Compliance Tracker</h1>
-        </div>
 
-        <Card className="shadow-sm">
-          <CardContent className="space-y-5">
-            <div>
-              <CardTitle>Set a new password</CardTitle>
-              <CardDescription>Choose a new password for your account.</CardDescription>
-            </div>
+          {!token ? (
+            <p className="text-sm text-destructive">
+              This reset link is missing its token. Request a new one from the login page.
+            </p>
+          ) : succeeded ? (
+            <p className="text-sm text-muted-foreground">
+              Password reset. You can now log in with your new password.
+            </p>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="new-password">New password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                />
+              </div>
 
-            {!token ? (
-              <p className="text-sm text-destructive">
-                This reset link is missing its token. Request a new one from the login page.
-              </p>
-            ) : succeeded ? (
-              <p className="text-sm text-muted-foreground">
-                Password reset. You can now log in with your new password.
-              </p>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="new-password">New password</Label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    required
-                  />
-                </div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
 
-                {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button type="submit" className="w-full" disabled={submitting}>
+                {submitting ? "Resetting..." : "Reset password"}
+              </Button>
+            </form>
+          )}
 
-                <Button type="submit" className="w-full" disabled={submitting}>
-                  {submitting ? "Resetting..." : "Reset password"}
-                </Button>
-              </form>
-            )}
-
-            <Link to="/" className="block text-center text-sm text-muted-foreground hover:underline">
-              Back to login
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+          <Link to="/" className="block text-center text-sm text-muted-foreground hover:underline">
+            Back to login
+          </Link>
+        </CardContent>
+      </Card>
+    </AuthShell>
   );
 }
