@@ -190,7 +190,7 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
                 return (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.employeeName}</TableCell>
-                  <TableCell>{p.expiryDate}</TableCell>
+                  <TableCell className="font-mono">{p.expiryDate}</TableCell>
                   <TableCell>
                     <Badge className={cn(urgencyClasses(days))}>{urgencyLabel(days)}</Badge>
                   </TableCell>

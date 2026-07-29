@@ -15,8 +15,9 @@ work pass renewals).
 | Components | shadcn/ui                                   |
 | Auth       | JWT (access + refresh pair) stored in `localStorage`, access token attached to every API request |
 
-No routing/state library — the app is small enough (login + one main page) that React's
-built-in `useState`/`useEffect` is sufficient; would revisit if the app grows.
+`react-router` handles the two real URL-addressable pages (password reset's `/forgot-password`,
+`/reset-password?token=...` — issue #55); everything else is still a single component tree driven
+by `useState`/`useEffect`, no state management library needed yet.
 
 ## Running locally
 
@@ -76,6 +77,20 @@ for watch mode during development.
   password`, `/reset-password?token=...`), the only two real URL-addressable pages in the app;
   everything else is still owned by `App` directly. `react-router`'s `BrowserRouter` wraps the
   whole app in `main.tsx` specifically so the reset link's token can travel via a real URL.
+- `src/components/AmbientBackground.tsx` — a fixed, low-opacity "depth-sounding" motif (concentric
+  rings + a slow rotating sweep) behind all page content, part of the "Harbour Ledger" design
+  (issue #59). Respects `prefers-reduced-motion` via Tailwind's `motion-safe:` variant.
+
+## Design system
+
+The app follows a "Harbour Ledger" visual identity (issue #59, sourced from a design mockup) —
+deep marine teal + brass accents over cool chart-paper neutrals, replacing the previous generic
+shadcn preset. Tokens live in `src/index.css`'s `:root`/`.dark` blocks (OKLCH). Serif
+(`font-serif`) is used sparingly, only on page-level `<h1>` titles and the brand wordmark — not
+card headers or body copy. Monospace (`font-mono`) is used on every date and countdown figure
+(e.g. "18d left") so numbers read as measured ledger entries, but never on plain status/prose
+badges. A hairline (`border-b`) sits beneath every page header, and stat tiles carry a thin
+top color stripe encoding severity (teal default, amber for "due soon", brick for "overdue").
 
 ## Status
 
@@ -85,7 +100,7 @@ to its own owner) — a fresh account starts with an empty list, not everyone el
 is a real dashboard (summary stat tiles, side-by-side business list + deadlines panel on wider
 screens, urgency-colored deadline badges), not just default component styling. A top-level error
 boundary catches any otherwise-uncaught render error with a friendly fallback rather than a blank
-screen. Each business has its own configurable reminder lead time (1-90 days, default 14, set in
+screen, styled per the "Harbour Ledger" design system above. Each business has its own configurable reminder lead time (1-90 days, default 14, set in
 `AddBusinessDialog`/`EditBusinessDialog`, shown in the business list). An optional incorporation
 date can be set on creation, validated against a real first-year ACRA rule (Companies Act 1967
 s.198's 18-month cap) with the backend's actual rejection reason shown, not a generic error —

@@ -77,7 +77,7 @@ export function DeadlinesPanel({ business, refreshKey }: DeadlinesPanelProps) {
                         {OBLIGATION_LABELS[d.obligationType] ?? d.obligationType}
                       </Badge>
                     </TableCell>
-                    <TableCell>{d.dueDate}</TableCell>
+                    <TableCell className="font-mono">{d.dueDate}</TableCell>
                     <TableCell className="text-right">
                       <Badge className={cn(urgencyClasses(days))}>{urgencyLabel(days)}</Badge>
                     </TableCell>

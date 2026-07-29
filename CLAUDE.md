@@ -160,6 +160,32 @@ directly from the trash icon's `onClick`. Verified live via Playwright: clicking
 does not delete immediately, Cancel leaves the row untouched, and confirming actually removes it
 — three separate real assertions, not just that a dialog renders.
 
-Open (not started): #7 (deploy — depends on backend #5), #56.
+**"Harbour Ledger" redesign (tracked under #39, decided: full nav-rail + IA restructure, not just
+a reskin — see NOTES.md §4p for the full breakdown and design-handoff source).** Step 1, #59
+(design tokens + typography foundation), is done — `index.css`'s `:root`/`.dark` swapped from the
+generic shadcn nova preset to the harbour teal/brass palette (both light and dark populated, even
+though dark mode has no toggle yet — issue #20 — so it's ready the moment one exists); `font-serif`
+applied only to `App.tsx`'s page `<h1>` (deliberately NOT to `--font-heading`/`CardTitle`, which
+would've put serif on every card header, contradicting the "used sparingly" intent); `font-mono`
+on every date cell and countdown badge (`urgency.ts`, `BusinessList`, `DeadlinesPanel`,
+`WorkPassesPanel`); a ledger hairline (`border-b`) under `App.tsx`'s header; `AmbientBackground`
+(fixed rings + rotating sweep, single teal tint — no per-section re-tint yet, that needs the
+route-aware "which section" state the nav-rail step introduces) mounted once; `StatCard` gained a
+`severity` prop driving a top color stripe. Found and fixed a real regression along the way:
+`LoginForm`'s brand-panel gradient had hardcoded blue/violet OKLCH endpoints from the *old*
+palette that clashed outright once `--primary` changed underneath them — not fixed with the full
+mockup brand-panel treatment (that's its own later phase, step 7 below) but re-tinted to the same
+teal family so it isn't visibly broken in the meantime. Explicitly NOT building the mockup's
+Admin Rules page as part of any of this — no backend rule-override API exists at all (confirmed:
+only `auth`/`business`/`workpass` controllers), and the design-handoff doc is explicit that a page
+with no real backend behind it shouldn't get built; stays tracked separately under #21.
+
+Remaining steps (not started): nav rail + route-based navigation (replacing the single dashboard
+with Businesses/Calendar/Work Passes/Edit Business/Notifications/Account as real routes) →
+Calendar page (#19) → Account page → Notifications status page (read-only channel info only, no
+history table — no backend endpoint for that) → 404 page → reskin the auth pages properly + build
+Verify Email (#56).
+
+Open (not started): #7 (deploy — depends on backend #5).
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.
