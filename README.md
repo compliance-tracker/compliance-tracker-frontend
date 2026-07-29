@@ -65,7 +65,8 @@ for watch mode during development.
   year doesn't run more than 18 months past incorporation), `DeadlinesPanel` (deadlines colored by
   urgency: red ≤30 days, amber ≤90 days, neutral further out), `WorkPassesPanel` (view/add/remove
   a selected business's employee work passes, driving the Employment Pass renewal deadlines,
-  same urgency-badge convention as `DeadlinesPanel` — shared logic lives in `src/lib/urgency.ts`).
+  same urgency-badge convention as `DeadlinesPanel` — shared logic lives in `src/lib/urgency.ts`;
+  removing a work pass requires confirming first, same as deleting a business).
 - `src/components/ui/` — shadcn/ui primitives (owned code, not an npm dependency — copied in
   via the shadcn CLI, edit freely).
 - `src/components/ErrorBoundary.tsx` — top-level React error boundary, wrapped around `<App />`

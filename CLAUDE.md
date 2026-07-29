@@ -151,6 +151,15 @@ changes (e.g. a future move to a meta-framework).
 #56 (email verification UI, backend #36's frontend counterpart) is filed but not started — lower
 priority since nothing currently enforces `emailVerified` on the backend either.
 
+#24 (confirmation before destructive actions) is done — its business-delete half already existed
+(`DeleteBusinessDialog`, from #16), so the only real remaining gap was work-pass removal, which
+used to delete on a single click with no confirmation at all. `WorkPassesPanel` now tracks a
+`pendingDelete: WorkPass | null` and opens a small confirm dialog (mirroring
+`DeleteBusinessDialog`'s Cancel/"Yes, remove" pattern) instead of calling `handleDelete`
+directly from the trash icon's `onClick`. Verified live via Playwright: clicking the trash icon
+does not delete immediately, Cancel leaves the row untouched, and confirming actually removes it
+— three separate real assertions, not just that a dialog renders.
+
 Open (not started): #7 (deploy — depends on backend #5), #56.
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.
