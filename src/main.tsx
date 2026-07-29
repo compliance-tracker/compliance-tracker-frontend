@@ -6,6 +6,7 @@ import App from './App.tsx'
 import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 import { ForgotPasswordPage } from './components/ForgotPasswordPage.tsx'
 import { ResetPasswordPage } from './components/ResetPasswordPage.tsx'
+import { VerifyEmailPage } from './components/VerifyEmailPage.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -14,6 +15,7 @@ createRoot(document.getElementById('root')!).render(
         <Routes>
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
           {/* App owns everything else (the authenticated dashboard and the login/register
               screen itself) - unchanged, not restructured into routes of its own, since it
               doesn't need URL-addressable sub-pages the way password reset does. */}

@@ -56,16 +56,21 @@ for watch mode during development.
   if that refresh fails too, not on the access token's first expiry. Throws an `ApiRequestError`
   (carrying the backend's real `{error, message}` body) on any other non-2xx response where the
   backend actually sent one, so a caller can show the genuine reason instead of a generic string —
-  every form (login/register, add/edit/delete business, work passes) does this now.
-- **Routing** (`main.tsx`'s `BrowserRouter`) — `/forgot-password`, `/reset-password?token=...`
-  (issue #55), and everything else under `App`, which (once authenticated) renders a persistent
-  `NavRail` + routed pages (issue #61): `/businesses` (list), `/calendar` (every business's
-  deadlines merged into one month grid + upcoming timeline, issue #63), `/businesses/:id` (a
-  business's deadlines + work passes), `/businesses/:id/edit` (edit/delete), `/account` (registered
-  email, a disabled "Change password" control, log out — issue #67), and a 404 fallback for
-  anything else. Page-level state (the fetched businesses list, create/update/delete handlers,
-  `onLogout`) is owned by `App` and passed down to routed pages via `<Outlet context={...}/>`/
-  `useOutletContext()` — see `src/components/Shell.tsx`'s `ShellContext` type.
+  every form (login/register, add/edit/delete business, work passes) does this now. Careful to
+  not mistake Spring Boot's own default error page for a real `ApiError` — both happen to have
+  `error`/`message` string fields, but Spring's version always carries extra keys
+  (`timestamp`/`status`/`path`) a genuine `ApiError` body never does; found live when a raw
+  Hibernate exception message briefly leaked onto the Verify Email page (issue #69).
+- **Routing** (`main.tsx`'s `BrowserRouter`) — `/forgot-password`, `/reset-password?token=...`,
+  `/verify-email?token=...` (issues #55/#69), and everything else under `App`, which (once
+  authenticated) renders a persistent `NavRail` + routed pages (issue #61): `/businesses` (list),
+  `/calendar` (every business's deadlines merged into one month grid + upcoming timeline, issue
+  #63), `/businesses/:id` (a business's deadlines + work passes), `/businesses/:id/edit`
+  (edit/delete), `/account` (registered email, a disabled "Change password" control, log out —
+  issue #67), and a 404 fallback for anything else. Page-level state (the fetched businesses
+  list, create/update/delete handlers, `onLogout`) is owned by `App` and passed down to routed
+  pages via `<Outlet context={...}/>`/`useOutletContext()` — see `src/components/Shell.tsx`'s
+  `ShellContext` type.
 - `src/components/` — `LoginForm` (login/register, toggles between the two), `NavRail` (the fixed
   dark sidebar; "Overview"/"Edit business" are disabled placeholders until a business is
   selected, real links once one is), `CalendarPage` (fetches every business's deadlines and
@@ -83,7 +88,12 @@ for watch mode during development.
   plus a danger-zone delete reusing `DeleteBusinessDialog`'s confirmation), `AccountPage`
   (registered email — decoded from the JWT's `sub` claim via `auth.getEmail()`, no separate
   "current user" API call needed — a disabled "Change password" control, and log out, moved here
-  from a temporary placeholder button on the nav rail once this page existed to hold it).
+  from a temporary placeholder button on the nav rail once this page existed to hold it),
+  `AuthShell` (the split brand-panel + form-panel layout shared by `LoginForm`/
+  `ForgotPasswordPage`/`ResetPasswordPage`, issue #69), `VerifyEmailPage` (a lighter, centered
+  single-card treatment instead — verification is informational-only and non-blocking, so it
+  doesn't carry the same visual weight as a real auth gate; calls the real
+  `POST /api/auth/verify-email` on mount using the URL's `?token=`).
 - `src/components/ui/` — shadcn/ui primitives (owned code, not an npm dependency — copied in
   via the shadcn CLI, edit freely).
 - `src/components/ErrorBoundary.tsx` — top-level React error boundary, wrapped around `<App />`
@@ -105,6 +115,9 @@ card headers or body copy. Monospace (`font-mono`) is used on every date and cou
 (e.g. "18d left") so numbers read as measured ledger entries, but never on plain status/prose
 badges. A hairline (`border-b`) sits beneath every page header, and stat tiles carry a thin
 top color stripe encoding severity (teal default, amber for "due soon", brick for "overdue").
+The app's persistent `NavRail` and every auth page's `AuthShell` brand panel share one fixed
+dark "harbour" navy, never theme-swapped, unlike the rest of the app's `:root`/`.dark` tokens —
+the one visual constant across the whole product, like a ledger's bound cover.
 
 ## Status
 
@@ -126,6 +139,11 @@ that fails after already being optimistically removed from the list, which now r
 instead of leaving the UI out of sync with the server. A full "forgot your password?" flow now
 exists too — a neutral "check your inbox" page that never reveals whether an email exists, and a
 real reset-password page reached via an emailed link's token, both showing the backend's actual
-rejection reason (invalid/expired token, weak new password) rather than a generic error. See
+rejection reason (invalid/expired token, weak new password) rather than a generic error. Email
+verification is wired up too (`/verify-email?token=...`) — informational only, nothing in the app
+enforces it. The Harbour Ledger redesign is now complete for its planned scope: design tokens,
+nav rail + routed pages, Calendar, Account, and the auth pages all match the mockup; a
+Notifications status page is the one deferred piece, blocked on a small backend endpoint that
+doesn't exist yet (backend issue #114) rather than built with invented data. See
 [issues on the frontend repo](https://github.com/compliance-tracker/compliance-tracker-frontend/issues)
 for current progress.

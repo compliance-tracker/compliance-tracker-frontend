@@ -148,6 +148,28 @@ describe("request (via api.* methods)", () => {
       ),
     );
   });
+
+  it("does not mistake Spring Boot's default error page for a real ApiError (issue #69/backend #115)", async () => {
+    // Spring's own default error body happens to have `error` and `message` string fields too,
+    // by coincidence - the exact shape our own ApiError record has - but also carries at least
+    // `timestamp`/`status`/`path`, which a genuine ApiError body never does. A raw, unintended
+    // 500 like this should fall back to the generic Error path, not leak the internal exception
+    // message (found live: a raw Hibernate exception message rendered straight onto the page).
+    mockFetchOnce({
+      ok: false,
+      status: 500,
+      text: async () =>
+        JSON.stringify({
+          timestamp: "2026-07-29T12:00:00.000+00:00",
+          status: 500,
+          error: "Internal Server Error",
+          message: "Unexpected row count (expected row count 1 but was 0) [delete from email_verification_token where id=?]",
+          path: "/api/auth/verify-email",
+        }),
+    });
+
+    await expect(api.getBusinesses()).rejects.not.toBeInstanceOf(ApiRequestError);
+  });
 });
 
 describe("silent refresh on 401 (issues #17/#26)", () => {

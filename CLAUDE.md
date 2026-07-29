@@ -241,9 +241,47 @@ longer has any Log out button, the Account page shows the actual registered emai
 placeholder), the Change-password control is genuinely disabled, and clicking Log out from its
 new location still actually logs out and returns to the login screen — zero console errors.
 
-Remaining steps (not started): Notifications status page (read-only channel info only, no
-history table — no backend endpoint for that) → reskin the auth pages properly + build Verify
-Email (#56).
+Step 5, #69 (reskin auth pages + build Verify Email), is done — **this closes out the Harbour
+Ledger redesign's planned scope**, apart from Notifications (blocked on backend #114, see below).
+Extracted a shared `AuthShell` component (the split brand-panel + form-panel layout) used by
+`LoginForm`/`ForgotPasswordPage`/`ResetPasswordPage` — previously each had its own near-duplicate:
+`LoginForm`'s panel still had the pre-Harbour-Ledger blurred-blob decoration (#59 only recolored
+its gradient, never restructured it), while Forgot/Reset used a lighter centered-card treatment
+the mockup actually reserves for Verify Email specifically. `AuthShell`'s brand panel gets its own
+dot-grid + rings/sweep motif (brass-tinted, fixed navy — same as `NavRail`, never theme-swapped),
+distinct from the app's teal `AmbientBackground`. Built `VerifyEmailPage` (`/verify-email?token=...`,
+a standalone top-level route in `main.tsx`, not nested in the authenticated `Shell`, since it must
+work with zero session) for real — backend #36's `POST /api/auth/verify-email` was a working
+endpoint nobody had ever wired up; auto-verifies on mount, three states (verifying/verified/error),
+deliberately the lighter centered treatment per the mockup since verification is informational-only.
+
+**Found and fixed a real, separate bug while live-verifying this** (not planned scope, discovered
+via the actual click-through): Spring Boot's own default error page for an unhandled 500 happens
+to have `error`/`message` string fields too — the exact same shape as this app's own `ApiError`
+record — so `api.ts`'s `isApiError` type guard was matching it as if it were a real structured
+error, and a raw internal Hibernate exception message briefly rendered straight onto the Verify
+Email page. Fixed by also requiring exactly two own keys (`Object.keys(body).length === 2`) —
+Spring's default body always carries `timestamp`/`status`/`path` alongside `error`/`message`, a
+genuine `ApiError` body never does. New regression test in `api.test.ts` using Spring's actual
+default error shape. The backend bug that surfaced this (a real race in `verifyEmail` — two
+near-simultaneous requests for the same token, the second gets an unhandled
+`ObjectOptimisticLockingFailureException` instead of the normal 401) was filed separately as
+backend issue #115, not fixed here (backend code, and the backend session was concurrently
+mid-work on something else).
+
+Verified live via Playwright/screenshots: Login (with its dot-grid/rings/value-props), Forgot
+Password, and Reset Password all render the new split shell correctly; Verify Email's full round
+trip (register → read the real token from Postgres, same technique as #55's password-reset
+verification → visit the real link → success screen → reusing the same token shows the backend's
+real "invalid or expired" message → a missing token shows the right message) — plus re-confirmed
+after the `isApiError` fix that the race-condition 500 now shows the honest generic fallback
+message instead of the leaked exception text.
+
+Deferred: Notifications status page — no backend endpoint exposes which `NotificationSender`
+channel is active (checked the controllers directly), so building it would mean inventing data.
+Filed backend issue #114 (compliance-tracker#114) requesting a small read-only status endpoint
+and commented on this repo's #39 explaining the block, rather than building nothing or faking it.
+Will resume once that lands.
 
 Open (not started): #7 (deploy — depends on backend #5).
 
