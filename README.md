@@ -54,7 +54,8 @@ for watch mode during development.
   giving up — a real session only actually ends (bounced to the login screen with an explanation)
   if that refresh fails too, not on the access token's first expiry. Throws an `ApiRequestError`
   (carrying the backend's real `{error, message}` body) on any other non-2xx response where the
-  backend actually sent one, so a caller can show the genuine reason instead of a generic string.
+  backend actually sent one, so a caller can show the genuine reason instead of a generic string —
+  every form (login/register, add/edit/delete business, work passes) does this now.
 - `src/components/` — `LoginForm` (login/register, toggles between the two), `StatCard`
   (summary tiles), `BusinessList` (search by name, filter by GST status, sort by name/FYE with a
   direction toggle — all client-side over the already-fetched list, plus each business's own
@@ -82,6 +83,10 @@ boundary catches any otherwise-uncaught render error with a friendly fallback ra
 screen. Each business has its own configurable reminder lead time (1-90 days, default 14, set in
 `AddBusinessDialog`/`EditBusinessDialog`, shown in the business list). An optional incorporation
 date can be set on creation, validated against a real first-year ACRA rule (Companies Act 1967
-s.198's 18-month cap) with the backend's actual rejection reason shown, not a generic error. See
+s.198's 18-month cap) with the backend's actual rejection reason shown, not a generic error —
+every form in the app now shows the backend's real error message where one exists (login/
+register, business create/edit/delete, work pass add/remove), including a work-pass removal
+that fails after already being optimistically removed from the list, which now restores the row
+instead of leaving the UI out of sync with the server. See
 [issues on the frontend repo](https://github.com/compliance-tracker/compliance-tracker-frontend/issues)
 for current progress.

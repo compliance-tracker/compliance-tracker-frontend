@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { api } from "@/lib/api";
+import { api, ApiRequestError } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { daysUntil, urgencyClasses, urgencyLabel } from "@/lib/urgency";
 import type { Business, WorkPass } from "@/lib/types";
@@ -64,8 +64,8 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
       setDialogOpen(false);
       setEmployeeName("");
       setExpiryDate("");
-    } catch {
-      setError("Could not add work pass. Is the backend running?");
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : "Could not add work pass. Is the backend running?");
     } finally {
       setSubmitting(false);
     }
@@ -73,11 +73,20 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
 
   async function handleDelete(workPassId: number) {
     if (!business) return;
+    setError(null);
+    const previous = workPasses;
     // Optimistic removal - the row disappears immediately rather than waiting on the network,
-    // since a delete has nothing meaningful to show while pending.
+    // since a delete has nothing meaningful to show while pending. Rolled back below if the
+    // request actually fails, rather than leaving the UI showing a pass that's still there.
     setWorkPasses((prev) => prev.filter((p) => p.id !== workPassId));
-    await api.deleteWorkPass(business.id, workPassId);
-    onWorkPassesChanged?.();
+
+    try {
+      await api.deleteWorkPass(business.id, workPassId);
+      onWorkPassesChanged?.();
+    } catch (err) {
+      setWorkPasses(previous);
+      setError(err instanceof ApiRequestError ? err.message : "Could not remove work pass. Is the backend running?");
+    }
   }
 
   if (!business) {
@@ -144,7 +153,12 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
           </DialogContent>
         </Dialog>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-3">
+        {/* Shown here (not just inside the add dialog above) since a delete failure - the
+            other thing that sets `error` - happens with that dialog closed. */}
+        {error && !dialogOpen && (
+          <p className="text-sm text-destructive">{error}</p>
+        )}
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading...</p>
         ) : workPasses.length === 0 ? (

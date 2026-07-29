@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { api } from "@/lib/api";
+import { api, ApiRequestError } from "@/lib/api";
 import type { Business } from "@/lib/types";
 
 interface DeleteBusinessDialogProps {
@@ -31,8 +31,8 @@ export function DeleteBusinessDialog({ business, onDeleted }: DeleteBusinessDial
       await api.deleteBusiness(business.id);
       onDeleted(business.id);
       setOpen(false);
-    } catch {
-      setError("Could not delete business. Is the backend running?");
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : "Could not delete business. Is the backend running?");
     } finally {
       setDeleting(false);
     }

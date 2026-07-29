@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { api } from "@/lib/api";
+import { api, ApiRequestError } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
 interface LoginFormProps {
@@ -51,11 +51,17 @@ export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
 
       auth.setTokens(response.token, response.refreshToken);
       onAuthenticated();
-    } catch {
+    } catch (err) {
+      // The backend already returns a specific, real message for every login/register failure
+      // (wrong credentials, weak password, email already taken, rate-limited) - showing it
+      // directly is strictly better than the single hardcoded guess this used to make per mode,
+      // which mislabeled e.g. a weak-password rejection as "email may already be taken".
       setError(
-        mode === "login"
-          ? "Incorrect email or password."
-          : "Could not register. That email may already be taken."
+        err instanceof ApiRequestError
+          ? err.message
+          : mode === "login"
+            ? "Incorrect email or password."
+            : "Could not register. Is the backend running?"
       );
     } finally {
       setSubmitting(false);

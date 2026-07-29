@@ -102,7 +102,23 @@ Verified live via Playwright: created a business with a genuinely violating comb
 message appeared verbatim, not a generic one; fixed the FYE to a valid date and confirmed
 creation then succeeded.
 
-Open (not started): #7 (deploy — depends on backend #5), #52 (sweep other forms onto real
-backend error messages).
+#52 (sweep every other form onto real backend error messages, the follow-up left out of #51 on
+purpose) is done — `LoginForm`, `DeleteBusinessDialog`, and `WorkPassesPanel`'s add/remove paths
+all now show `err.message` when the catch is an `ApiRequestError`, falling back to the old
+generic string only for a non-`ApiError` failure (network error, backend down). `LoginForm`'s
+old hardcoded per-mode message ("that email may already be taken" for *any* register failure)
+was actively misleading — a weak-password `400` used to show that same wrong reason; now it
+shows the backend's real, specific message instead, and same for a genuine `409` email conflict.
+Also found and fixed a real, separate latent bug while touching `WorkPassesPanel`:
+`handleDelete`'s optimistic row removal had no error handling at all — a failed delete left the
+UI silently out of sync with the server (the row gone client-side, still present in the
+database) with an unhandled promise rejection besides. Added a rollback (`setWorkPasses(previous)`
+on catch) plus the same real-message display. Verified live via Playwright: weak-password
+registration, a real duplicate-email conflict, and a wrong-password login all showed their exact
+real backend messages; a work-pass delete forced to fail via route interception (a genuine
+500 with a structured body) confirmed the row visually reappears and the real message shows,
+not just that the code compiles.
+
+Open (not started): #7 (deploy — depends on backend #5).
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.
