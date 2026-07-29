@@ -7,6 +7,7 @@ import { CalendarPage } from "@/components/CalendarPage";
 import { EditBusinessPage } from "@/components/EditBusinessPage";
 import { LoginForm } from "@/components/LoginForm";
 import { NotFoundPage } from "@/components/NotFoundPage";
+import { NotificationsPage } from "@/components/NotificationsPage";
 import { Shell } from "@/components/Shell";
 import { api, registerSessionExpiredHandler } from "@/lib/api";
 import { auth } from "@/lib/auth";
@@ -114,6 +115,7 @@ function App() {
         <Route path="businesses/:id" element={<BusinessDetailPage />} />
         <Route path="businesses/:id/edit" element={<EditBusinessPage />} />
         <Route path="account" element={<AccountPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
