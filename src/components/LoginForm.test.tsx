@@ -2,15 +2,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { LoginForm } from "./LoginForm";
-import { api } from "@/lib/api";
+import { api, ApiRequestError } from "@/lib/api";
 import { auth } from "@/lib/auth";
 
-vi.mock("@/lib/api", () => ({
-  api: {
-    login: vi.fn(),
-    register: vi.fn(),
-  },
-}));
+// Keeps the real ApiRequestError export (LoginForm does `err instanceof ApiRequestError`,
+// which throws if that's undefined) while still stubbing out login/register themselves.
+vi.mock("@/lib/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/api")>();
+  return {
+    ...actual,
+    api: {
+      login: vi.fn(),
+      register: vi.fn(),
+    },
+  };
+});
 
 beforeEach(() => {
   localStorage.clear();
@@ -105,6 +111,26 @@ describe("LoginForm", () => {
     expect(api.register).toHaveBeenCalledWith({ email: "new@example.com", password: "a-new-password" });
     expect(api.login).not.toHaveBeenCalled();
     expect(onAuthenticated).toHaveBeenCalledOnce();
+  });
+
+  it("shows the backend's real message on a failed registration (issue #52)", async () => {
+    // Proves the specific, real backend message reaches the user - not the old single
+    // hardcoded "that email may already be taken" guess, which used to show even for an
+    // unrelated weak-password rejection.
+    vi.mocked(api.register).mockRejectedValue(
+      new ApiRequestError("Password must be at least 8 characters and include a letter and a digit.", "BAD_REQUEST"),
+    );
+    const user = userEvent.setup();
+    render(<LoginForm onAuthenticated={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: "Sign up" }));
+    await user.type(screen.getByLabelText("Email"), "new@example.com");
+    await user.type(screen.getByLabelText("Password"), "weak");
+    await user.click(screen.getByRole("button", { name: "Register" }));
+
+    expect(
+      await screen.findByText("Password must be at least 8 characters and include a letter and a digit."),
+    ).toBeInTheDocument();
   });
 
   it("shows the session-expired message when passed one, and not otherwise", () => {
