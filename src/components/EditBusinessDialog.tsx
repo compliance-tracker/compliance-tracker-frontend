@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { api } from "@/lib/api";
+import { api, ApiRequestError } from "@/lib/api";
 import type { Business } from "@/lib/types";
 
 interface EditBusinessDialogProps {
@@ -27,6 +27,7 @@ export function EditBusinessDialog({ business, onUpdated }: EditBusinessDialogPr
   const [financialYearEnd, setFinancialYearEnd] = useState(business.financialYearEnd);
   const [gstRegistered, setGstRegistered] = useState(business.gstRegistered);
   const [leadTimeDays, setLeadTimeDays] = useState(String(business.leadTimeDays));
+  const [incorporationDate, setIncorporationDate] = useState(business.incorporationDate ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,6 +39,7 @@ export function EditBusinessDialog({ business, onUpdated }: EditBusinessDialogPr
       setFinancialYearEnd(business.financialYearEnd);
       setGstRegistered(business.gstRegistered);
       setLeadTimeDays(String(business.leadTimeDays));
+      setIncorporationDate(business.incorporationDate ?? "");
       setError(null);
     }
     setOpen(next);
@@ -54,11 +56,12 @@ export function EditBusinessDialog({ business, onUpdated }: EditBusinessDialogPr
         financialYearEnd,
         gstRegistered,
         leadTimeDays: Number(leadTimeDays),
+        incorporationDate: incorporationDate || null,
       });
       onUpdated(updated);
       setOpen(false);
-    } catch {
-      setError("Could not update business. Is the backend running?");
+    } catch (err) {
+      setError(err instanceof ApiRequestError ? err.message : "Could not update business. Is the backend running?");
     } finally {
       setSubmitting(false);
     }
@@ -121,6 +124,16 @@ export function EditBusinessDialog({ business, onUpdated }: EditBusinessDialogPr
                 value={leadTimeDays}
                 onChange={(e) => setLeadTimeDays(e.target.value)}
                 required
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="edit-incorporation-date">Incorporation date (optional)</Label>
+              <Input
+                id="edit-incorporation-date"
+                type="date"
+                value={incorporationDate}
+                onChange={(e) => setIncorporationDate(e.target.value)}
               />
             </div>
 

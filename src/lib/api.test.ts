@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { api, registerSessionExpiredHandler } from "./api";
+import { api, ApiRequestError, registerSessionExpiredHandler } from "./api";
 import { auth } from "./auth";
 
 // api.ts's request() helper isn't exported directly - tested indirectly through api.* methods,
@@ -74,7 +74,7 @@ describe("request (via api.* methods)", () => {
       text: async () =>
         JSON.stringify({
           content: [
-            { id: 1, name: "Test Co", financialYearEnd: "2026-12-31", gstRegistered: false, leadTimeDays: 14 },
+            { id: 1, name: "Test Co", financialYearEnd: "2026-12-31", gstRegistered: false, leadTimeDays: 14, incorporationDate: null },
           ],
           page: 0,
           size: 20,
@@ -86,7 +86,7 @@ describe("request (via api.* methods)", () => {
     const businesses = await api.getBusinesses();
 
     expect(businesses).toEqual([
-      { id: 1, name: "Test Co", financialYearEnd: "2026-12-31", gstRegistered: false, leadTimeDays: 14 },
+      { id: 1, name: "Test Co", financialYearEnd: "2026-12-31", gstRegistered: false, leadTimeDays: 14, incorporationDate: null },
     ]);
   });
 
@@ -120,6 +120,33 @@ describe("request (via api.* methods)", () => {
     });
 
     await expect(api.getBusinesses()).rejects.toThrow("401");
+  });
+
+  it("throws an ApiRequestError carrying the backend's real message on a structured error body (issue #47)", async () => {
+    mockFetchOnce({
+      ok: false,
+      status: 400,
+      text: async () =>
+        JSON.stringify({
+          error: "BAD_REQUEST",
+          message: "For a first financial year, financialYearEnd cannot be more than 18 months after incorporationDate.",
+        }),
+    });
+
+    await expect(
+      api.createBusiness({
+        name: "Test Co",
+        financialYearEnd: "2026-12-31",
+        gstRegistered: false,
+        leadTimeDays: 14,
+        incorporationDate: "2026-01-01",
+      }),
+    ).rejects.toThrow(
+      new ApiRequestError(
+        "For a first financial year, financialYearEnd cannot be more than 18 months after incorporationDate.",
+        "BAD_REQUEST",
+      ),
+    );
   });
 });
 

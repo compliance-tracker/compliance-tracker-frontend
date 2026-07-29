@@ -1,5 +1,26 @@
-import type { Business, NewBusiness, Deadline, Credentials, AuthResponse, WorkPass, NewWorkPass, PageResponse } from "./types";
+import type { ApiError, Business, NewBusiness, Deadline, Credentials, AuthResponse, WorkPass, NewWorkPass, PageResponse } from "./types";
 import { auth } from "./auth";
+
+// Thrown by request() on any non-ok response - carries the backend's real ApiError message
+// (issue #47) when the body actually has one, rather than every caller only ever seeing a
+// generic "request failed: 400" with no way to show the user what actually went wrong.
+export class ApiRequestError extends Error {
+  readonly code: string;
+
+  constructor(message: string, code: string) {
+    super(message);
+    this.code = code;
+  }
+}
+
+function isApiError(body: unknown): body is ApiError {
+  return (
+    typeof body === "object" &&
+    body !== null &&
+    typeof (body as ApiError).error === "string" &&
+    typeof (body as ApiError).message === "string"
+  );
+}
 
 // VITE_API_BASE_URL lets this point at a different backend later (e.g. once deployed to real
 // AWS) without touching code - Vite exposes any env var prefixed VITE_ to the browser bundle.
@@ -60,15 +81,22 @@ async function request<T>(path: string, options?: RequestInit, skipAuthRetry = f
     onSessionExpired?.();
   }
 
+  // Some endpoints (work pass DELETE: 204, auth logout: 200) return no body at all -
+  // response.json() throws on an empty string, so read as text first and only parse if there's
+  // actually something there, rather than special-casing status codes one at a time. Reading
+  // the body before checking response.ok (rather than after, as before) is what lets a non-ok
+  // response's ApiError body actually get inspected below instead of being discarded unread.
+  const text = await response.text();
+  const body = text ? JSON.parse(text) : undefined;
+
   if (!response.ok) {
+    if (isApiError(body)) {
+      throw new ApiRequestError(body.message, body.error);
+    }
     throw new Error(`${options?.method ?? "GET"} ${path} failed: ${response.status}`);
   }
 
-  // Some endpoints (work pass DELETE: 204, auth logout: 200) return no body at all -
-  // response.json() throws on an empty string, so read as text first and only parse if there's
-  // actually something there, rather than special-casing status codes one at a time.
-  const text = await response.text();
-  return (text ? JSON.parse(text) : undefined) as T;
+  return body as T;
 }
 
 export const api = {

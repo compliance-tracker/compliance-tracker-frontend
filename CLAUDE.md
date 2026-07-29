@@ -85,6 +85,24 @@ and rendered in the table, reopened the edit dialog and confirmed the field pre-
 (not a stale default), changed it to 7, confirmed the table updated — zero console errors
 throughout.
 
-Open (not started): #7 (deploy — depends on backend #5).
+#51 (expose backend #31's first-year ACRA incorporation-date validation) is done — an optional
+`incorporationDate` date input added to both `AddBusinessDialog` and `EditBusinessDialog`
+(preserved-if-omitted on update, matching the backend, and deliberately not re-validated there
+either — only creation actually enforces the 18-month rule). Along the way, fixed a real
+pre-existing gap this surfaced: `api.ts`'s `request()` used to discard the backend's structured
+`{error, message}` body entirely on any non-2xx response, so every form just showed one
+hardcoded string regardless of what the backend actually said — which would have made the new
+validation's specific message pointless. Added `ApiRequestError` (carries the real `message`/
+`error` code) and had `AddBusinessDialog`/`EditBusinessDialog` show it when present, falling back
+to the old generic string only for non-`ApiError` failures (network error, backend down). Every
+*other* form (`LoginForm` etc.) still swallows its real message — tracked separately as #52,
+deliberately not swept in this same change since it's a bigger, unrelated-to-this-feature sweep.
+Verified live via Playwright: created a business with a genuinely violating combination
+(incorporated 2026-01-01, FYE 2027-12-31 — over 18 months later) and confirmed the real backend
+message appeared verbatim, not a generic one; fixed the FYE to a valid date and confirmed
+creation then succeeded.
+
+Open (not started): #7 (deploy — depends on backend #5), #52 (sweep other forms onto real
+backend error messages).
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.
