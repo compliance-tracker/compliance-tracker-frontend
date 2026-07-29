@@ -5,9 +5,9 @@ import { BusinessList } from "./BusinessList";
 import type { Business } from "@/lib/types";
 
 const businesses: Business[] = [
-  { id: 1, name: "Zebra Trading Pte Ltd", financialYearEnd: "2026-12-31", gstRegistered: true },
-  { id: 2, name: "Acme Cafe Pte Ltd", financialYearEnd: "2026-03-31", gstRegistered: false },
-  { id: 3, name: "Mango Consulting Pte Ltd", financialYearEnd: "2026-09-30", gstRegistered: true },
+  { id: 1, name: "Zebra Trading Pte Ltd", financialYearEnd: "2026-12-31", gstRegistered: true, leadTimeDays: 14 },
+  { id: 2, name: "Acme Cafe Pte Ltd", financialYearEnd: "2026-03-31", gstRegistered: false, leadTimeDays: 30 },
+  { id: 3, name: "Mango Consulting Pte Ltd", financialYearEnd: "2026-09-30", gstRegistered: true, leadTimeDays: 14 },
 ];
 
 function renderList(list: Business[] = businesses) {

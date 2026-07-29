@@ -76,6 +76,15 @@ exception to this codebase otherwise being all-functional components. A single b
 top for the whole app, not one per panel — revisit only if a future feature makes losing one
 broken panel while keeping the rest alive actually worth the extra complexity. See NOTES.md §4i.
 
+#49 (expose backend #53's configurable per-business reminder lead time) is done — `leadTimeDays`
+added to `Business`/`NewBusiness` in `types.ts`; a number input (1-90, default 14) in both
+`AddBusinessDialog` and `EditBusinessDialog`; a new "Reminder lead" column in `BusinessList`
+(previously invisible once set — the only way to see it at all was reopening the edit dialog).
+Verified live via Playwright: created a business with a 45-day lead time, confirmed it persisted
+and rendered in the table, reopened the edit dialog and confirmed the field pre-filled with 45
+(not a stale default), changed it to 7, confirmed the table updated — zero console errors
+throughout.
+
 Open (not started): #7 (deploy — depends on backend #5).
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.

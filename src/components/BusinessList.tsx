@@ -116,6 +116,7 @@ export function BusinessList({ businesses, selectedId, onSelect, onUpdated, onDe
                     <TableHead>Name</TableHead>
                     <TableHead>Financial year end</TableHead>
                     <TableHead>GST</TableHead>
+                    <TableHead>Reminder lead</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -138,6 +139,7 @@ export function BusinessList({ businesses, selectedId, onSelect, onUpdated, onDe
                           <Badge variant="outline">Not registered</Badge>
                         )}
                       </TableCell>
+                      <TableCell className="text-muted-foreground">{b.leadTimeDays} days</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1.5">
                           <EditBusinessDialog business={b} onUpdated={onUpdated} />

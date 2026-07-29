@@ -55,8 +55,10 @@ for watch mode during development.
   if that refresh fails too, not on the access token's first expiry.
 - `src/components/` — `LoginForm` (login/register, toggles between the two), `StatCard`
   (summary tiles), `BusinessList` (search by name, filter by GST status, sort by name/FYE with a
-  direction toggle — all client-side over the already-fetched list, plus `EditBusinessDialog`/
-  `DeleteBusinessDialog` actions per row), `AddBusinessDialog`, `DeadlinesPanel` (deadlines colored by
+  direction toggle — all client-side over the already-fetched list, plus each business's own
+  reminder lead time and `EditBusinessDialog`/`DeleteBusinessDialog` actions per row),
+  `AddBusinessDialog` (name, financial year end, GST status, and reminder lead time in days —
+  defaults to 14, 1-90), `DeadlinesPanel` (deadlines colored by
   urgency: red ≤30 days, amber ≤90 days, neutral further out), `WorkPassesPanel` (view/add/remove
   a selected business's employee work passes, driving the Employment Pass renewal deadlines,
   same urgency-badge convention as `DeadlinesPanel` — shared logic lives in `src/lib/urgency.ts`).
@@ -74,6 +76,7 @@ to its own owner) — a fresh account starts with an empty list, not everyone el
 is a real dashboard (summary stat tiles, side-by-side business list + deadlines panel on wider
 screens, urgency-colored deadline badges), not just default component styling. A top-level error
 boundary catches any otherwise-uncaught render error with a friendly fallback rather than a blank
-screen. See
+screen. Each business has its own configurable reminder lead time (1-90 days, default 14, set in
+`AddBusinessDialog`/`EditBusinessDialog`, shown in the business list). See
 [issues on the frontend repo](https://github.com/compliance-tracker/compliance-tracker-frontend/issues)
 for current progress.
