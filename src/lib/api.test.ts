@@ -42,7 +42,7 @@ describe("request (via api.* methods)", () => {
     const fetchMock = mockFetchOnce({
       ok: true,
       status: 200,
-      text: async () => JSON.stringify([]),
+      text: async () => JSON.stringify({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 }),
     });
 
     await api.getBusinesses();
@@ -55,7 +55,7 @@ describe("request (via api.* methods)", () => {
     const fetchMock = mockFetchOnce({
       ok: true,
       status: 200,
-      text: async () => JSON.stringify([]),
+      text: async () => JSON.stringify({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 }),
     });
 
     await api.getBusinesses();
@@ -65,10 +65,20 @@ describe("request (via api.* methods)", () => {
   });
 
   it("parses a JSON body on a normal response", async () => {
+    // getBusinesses unwraps the backend's PageResponse envelope (issue #49) down to a plain
+    // array - .content is what this test actually cares about, the rest of the envelope is
+    // unused by api.ts today.
     mockFetchOnce({
       ok: true,
       status: 200,
-      text: async () => JSON.stringify([{ id: 1, name: "Test Co", financialYearEnd: "2026-12-31", gstRegistered: false }]),
+      text: async () =>
+        JSON.stringify({
+          content: [{ id: 1, name: "Test Co", financialYearEnd: "2026-12-31", gstRegistered: false }],
+          page: 0,
+          size: 20,
+          totalElements: 1,
+          totalPages: 1,
+        }),
     });
 
     const businesses = await api.getBusinesses();
@@ -115,7 +125,7 @@ describe("silent refresh on 401 (issues #17/#26)", () => {
     const fetchMock = mockFetchSequence([
       { ok: false, status: 401, text: async () => "" },
       { ok: true, status: 200, json: async () => ({ token: "new-token", refreshToken: "new-refresh-token" }) },
-      { ok: true, status: 200, text: async () => JSON.stringify([]) },
+      { ok: true, status: 200, text: async () => JSON.stringify({ content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 }) },
     ]);
 
     const businesses = await api.getBusinesses();

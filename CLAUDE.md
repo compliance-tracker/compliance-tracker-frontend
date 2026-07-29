@@ -58,6 +58,17 @@ A fourth login-page pass added a segmented "Log in"/"Sign up" pill toggle (repla
 
 #18 (search/sort/filter on the business list) is done — all client-side over the already-fetched list (search by name, filter by GST status, sort by name/FYE with a direction toggle), using shadcn's `select` component added for the first time in this repo. Two distinct empty states (no businesses at all vs. no matches for the current search/filter). See NOTES.md §4g for the jsdom/Radix `Select` testing gap it surfaced (fixed centrally in `src/test/setup.ts`, benefits any future Radix-primitive test). Verified live via Playwright with three real businesses.
 
+#46 (consume backend's new paginated response envelope, the frontend counterpart to backend #49)
+is done — backend #49 changed `GET /api/businesses`/`GET /api/businesses/{id}/work-passes` from a
+bare array to a `PageResponse<T>` envelope, which broke the live business list the moment that
+backend PR merged (a deliberate, discussed-first breaking change, same pattern as prior
+backend/frontend pairs). Fixed narrowly inside `api.ts`'s `getBusinesses`/`getWorkPasses`
+themselves (`.then((page) => page.content)`), so every existing caller keeps getting a plain
+array unchanged — no call-site changes needed. See NOTES.md §4h. Verified live via Playwright
+against the real backend (registered, added a business, confirmed it renders with zero console
+errors) — a mocked-`fetch` unit test alone can't prove the real endpoint's shape actually matches
+what the mock assumes.
+
 Open (not started): #7 (deploy — depends on backend #5).
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.
