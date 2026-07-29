@@ -73,7 +73,9 @@ for watch mode during development.
   `ShellContext` type.
 - `src/components/` — `LoginForm` (login/register, toggles between the two), `NavRail` (the fixed
   dark sidebar; "Overview"/"Edit business" are disabled placeholders until a business is
-  selected, real links once one is), `CalendarPage` (fetches every business's deadlines and
+  selected, real links once one is; an off-canvas drawer below the `lg` breakpoint — a hamburger
+  topbar in `Shell.tsx` toggles it, closing automatically on navigation or a backdrop tap, issue
+  #71), `CalendarPage` (fetches every business's deadlines and
   merges them client-side — no combined backend endpoint exists), `StatCard` (summary tiles, with a `severity` prop driving a
   top color stripe), `BusinessesPage` (stat tiles + `BusinessList`, the list's own "View" link
   navigates to a business's detail page), `BusinessList` (search by name, filter by GST status,
@@ -142,8 +144,9 @@ real reset-password page reached via an emailed link's token, both showing the b
 rejection reason (invalid/expired token, weak new password) rather than a generic error. Email
 verification is wired up too (`/verify-email?token=...`) — informational only, nothing in the app
 enforces it. The Harbour Ledger redesign is now complete for its planned scope: design tokens,
-nav rail + routed pages, Calendar, Account, and the auth pages all match the mockup; a
-Notifications status page is the one deferred piece, blocked on a small backend endpoint that
-doesn't exist yet (backend issue #114) rather than built with invented data. See
+nav rail + routed pages (including an off-canvas mobile drawer), Calendar, Account, and the auth
+pages all match the mockup; a Notifications status page is the one deferred piece, blocked on a
+small backend endpoint that doesn't exist yet (backend issue #114) rather than built with
+invented data. See
 [issues on the frontend repo](https://github.com/compliance-tracker/compliance-tracker-frontend/issues)
 for current progress.
