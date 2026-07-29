@@ -283,6 +283,24 @@ Filed backend issue #114 (compliance-tracker#114) requesting a small read-only s
 and commented on this repo's #39 explaining the block, rather than building nothing or faking it.
 Will resume once that lands.
 
+Closed #56 (email verification UI) retroactively — #69 already delivered it under a different
+issue number, keeping the tracker honest rather than leaving a stale duplicate open.
+
+**#71 (mobile nav — hamburger + off-canvas drawer) is done**, filling a real gap noticed while
+double-checking #39's original checklist against what actually shipped: the redesign's nav rail
+(#61) had zero responsive handling at all, a fixed 220px sidebar on every viewport width. `Shell.tsx`
+now renders a `lg:hidden` topbar (hamburger + brand) and a backdrop below the `lg` breakpoint;
+`NavRail` gained a `className` prop so `Shell` can reposition the exact same component (fixed
+off-canvas + `-translate-x-full`/`translate-x-0` toggle below `lg`, normal in-flow grid column at
+`lg`+) rather than maintaining two implementations. Closes automatically on navigation (a
+`useEffect` keyed on `pathname`) or a backdrop tap. Verified live via Playwright at a real mobile
+viewport width (390×844): confirmed the rail is genuinely off-screen via its actual bounding box
+(not `isVisible()`, which doesn't account for CSS transforms — a real gotcha hit while writing
+the check), slides on-screen when the hamburger is tapped, closes on backdrop tap, and closes
+automatically after navigating to Calendar — plus confirmed the desktop layout (1280px) is
+completely unaffected by any of this. New `Shell.test.tsx` covers the same open/close/close-on-
+navigate logic at the unit level.
+
 Open (not started): #7 (deploy — depends on backend #5).
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.

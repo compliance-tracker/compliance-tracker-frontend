@@ -2,16 +2,23 @@ import { NavLink, useParams } from "react-router-dom";
 import { Building2, CalendarDays, LayoutDashboard, Pencil, ShieldCheck, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+interface NavRailProps {
+  // Positioning only (fixed off-canvas drawer below lg vs. normal in-flow column at lg+, issue
+  // #71) - Shell owns the responsive behavior, NavRail just renders its own content the same way
+  // regardless of where it's placed.
+  className?: string;
+}
+
 // The persistent dark "harbour" sidebar (Harbour Ledger design, issue #59/#61) - fixed navy in
 // both light/dark theme (--rail-* tokens in index.css never theme-swap), unlike every other
 // surface in the app. Only real, working nav items are shown - no Notifications/Admin entries
 // yet, since those pages don't exist until their own later steps (a nav rail full of dead links
 // would be worse than a shorter honest one).
-export function NavRail() {
+export function NavRail({ className }: NavRailProps) {
   const { id } = useParams<{ id: string }>();
 
   return (
-    <nav className="flex flex-col gap-1 border-r border-rail-border bg-rail-bg p-3.5">
+    <nav className={cn("flex flex-col gap-1 overflow-y-auto border-r border-rail-border bg-rail-bg p-3.5", className)}>
       <div className="flex items-center gap-2.5 px-2 pb-5">
         <div className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[7px] bg-brass text-brass-foreground">
           <ShieldCheck className="h-4 w-4" />
