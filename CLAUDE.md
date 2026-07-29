@@ -202,9 +202,28 @@ become real links → Edit business → save → redirected back to the detail p
 reflected → a bad URL shows 404 → a well-formed but nonexistent business id shows "Business not
 found" — zero console errors throughout).
 
-Remaining steps (not started): Calendar page (#19) → Account page → Notifications status page
-(read-only channel info only, no history table — no backend endpoint for that) → reskin the auth
-pages properly + build Verify Email (#56).
+Step 3, #63 (Calendar page, closes #19 too), is done — `CalendarPage` at `/calendar`, reachable
+from the nav rail's top-level "Businesses" caption group (unlike "Work passes"/"Edit business",
+always a real link since it isn't scoped to a selected business). No backend endpoint returns
+deadlines across every business at once, so it fetches each business's own
+`GET /api/businesses/{id}/deadlines` via `Promise.all` and merges them client-side (fine at this
+app's scale — one SME's own businesses). A month grid (urgency-colored dots per day, current
+month, "today" highlighted) sits beside an "Upcoming, all businesses" timeline sorted by date
+ascending; `OBLIGATION_LABELS` moved from `DeadlinesPanel` into `urgency.ts` (alongside a new
+`urgencyTier()` helper) so both places share one source instead of duplicating the map. Also
+finally implemented the ambient background's per-section re-tint, deferred from #59 until real
+routes existed to know "which section" — `Shell.tsx` derives an `AmbientTint` ("teal" default,
+"brass" on `/businesses/:id`(`/edit`), "brick" on `/calendar`) from `useLocation()` and passes it
+to `AmbientBackground`, which now takes the tint as a prop instead of hardcoding `--primary`.
+Verified live via Playwright: the empty state before any business exists, then two businesses
+with real deadlines merging correctly into the timeline (sorted earliest-first regardless of
+which business), the month grid rendering, and the brick-red ambient tint actually visible on
+this page specifically (confirmed via screenshot, not just that the prop was passed) — zero
+console errors.
+
+Remaining steps (not started): Account page → Notifications status page (read-only channel info
+only, no history table — no backend endpoint for that) → reskin the auth pages properly + build
+Verify Email (#56).
 
 Open (not started): #7 (deploy — depends on backend #5).
 

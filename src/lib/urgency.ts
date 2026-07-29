@@ -1,6 +1,16 @@
-// Shared by DeadlinesPanel and WorkPassesPanel - both need "how many days until this date, and
-// how urgent does that look" for their own dates (a compliance deadline, a work pass expiry).
-// Kept in one place so the red/amber/neutral thresholds can't drift apart between the two.
+import type { ObligationType } from "./types";
+
+// Shared by DeadlinesPanel, WorkPassesPanel, and CalendarPage - all need "how many days until
+// this date, and how urgent does that look" for their own dates (a compliance deadline, a work
+// pass expiry). Kept in one place so the red/amber/neutral thresholds can't drift apart.
+
+// Human-readable obligation names, moved here from DeadlinesPanel (issue #63) once CalendarPage
+// needed the same mapping - kept with the other deadline-display helpers rather than duplicated.
+export const OBLIGATION_LABELS: Record<ObligationType, string> = {
+  ACRA_ANNUAL_RETURN: "ACRA Annual Return",
+  GST_F5: "GST F5 Filing",
+  WORK_PASS_RENEWAL: "Work Pass Renewal",
+};
 
 export function daysUntil(dueDate: string): number {
   const due = new Date(dueDate);
@@ -26,4 +36,14 @@ export function urgencyLabel(days: number): string {
   if (days < 0) return `${Math.abs(days)}d overdue`;
   if (days === 0) return "Due today";
   return `${days}d left`;
+}
+
+export type UrgencyTier = "high" | "med" | "low";
+
+// Same three thresholds as urgencyClasses, as a plain tier name - CalendarPage's day-dots (issue
+// #63) need to pick a dot color, not a badge's Tailwind classes.
+export function urgencyTier(days: number): UrgencyTier {
+  if (days <= 30) return "high";
+  if (days <= 90) return "med";
+  return "low";
 }

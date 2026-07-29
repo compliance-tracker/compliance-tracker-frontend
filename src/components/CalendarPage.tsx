@@ -1,0 +1,201 @@
+import { useEffect, useState } from "react";
+import { CalendarClock } from "lucide-react";
+import { Link, useOutletContext } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { api } from "@/lib/api";
+import { cn } from "@/lib/utils";
+import { OBLIGATION_LABELS, daysUntil, urgencyClasses, urgencyLabel, urgencyTier } from "@/lib/urgency";
+import type { ShellContext } from "@/components/Shell";
+import type { Business, Deadline } from "@/lib/types";
+
+const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const MONTH_LABELS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+interface BusinessDeadline {
+  business: Business;
+  deadline: Deadline;
+}
+
+const DOT_CLASSES: Record<string, string> = {
+  high: "bg-destructive",
+  med: "bg-amber",
+  low: "bg-muted-foreground",
+};
+
+// The mockup's Calendar page (issue #63/#19) - a month grid plus an "upcoming, all businesses"
+// timeline, both driven by merging every business's own deadlines client-side. No backend
+// endpoint returns deadlines across every business at once, so this fetches each business's
+// GET /api/businesses/{id}/deadlines individually (fine at this app's scale - one SME's own
+// businesses, not a multi-tenant global list, same reasoning BusinessList's client-side
+// search/sort/filter already relies on).
+export function CalendarPage() {
+  const { businesses, loading: businessesLoading } = useOutletContext<ShellContext>();
+  const [allDeadlines, setAllDeadlines] = useState<BusinessDeadline[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (businesses.length === 0) {
+      setAllDeadlines([]);
+      return;
+    }
+
+    setLoading(true);
+    Promise.all(
+      businesses.map((business) =>
+        api.getDeadlines(business.id).then((deadlines) => deadlines.map((deadline) => ({ business, deadline }))),
+      ),
+    )
+      .then((perBusiness) => setAllDeadlines(perBusiness.flat()))
+      .finally(() => setLoading(false));
+  }, [businesses]);
+
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth();
+
+  const deadlinesByDate = new Map<string, BusinessDeadline[]>();
+  for (const bd of allDeadlines) {
+    const existing = deadlinesByDate.get(bd.deadline.dueDate);
+    if (existing) existing.push(bd);
+    else deadlinesByDate.set(bd.deadline.dueDate, [bd]);
+  }
+
+  const upcoming = [...allDeadlines].sort((a, b) => a.deadline.dueDate.localeCompare(b.deadline.dueDate));
+
+  const isLoading = businessesLoading || loading;
+
+  return (
+    <div className="space-y-6">
+      <div className="border-b border-border pb-4">
+        <h1 className="font-serif text-2xl font-semibold tracking-tight">Deadlines calendar</h1>
+        <p className="text-sm text-muted-foreground">Every business's upcoming obligations, in one place.</p>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>
+              {MONTH_LABELS[month]} {year}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <MonthGrid year={year} month={month} deadlinesByDate={deadlinesByDate} />
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>Upcoming, all businesses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            ) : upcoming.length === 0 ? (
+              <div className="flex flex-col items-center gap-1 py-6 text-center">
+                <div className="mb-2.5 flex h-[50px] w-[50px] items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <CalendarClock className="h-[22px] w-[22px]" />
+                </div>
+                <h3 className="text-[14.5px] font-semibold">Nothing on the horizon</h3>
+                <p className="mb-3.5 max-w-[34ch] text-sm text-muted-foreground">
+                  Deadlines appear here automatically once a business is tracked.
+                </p>
+                <Button asChild variant="outline" size="sm">
+                  <Link to="/businesses">Go to businesses</Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {upcoming.map(({ business, deadline }, i) => {
+                  const days = daysUntil(deadline.dueDate);
+                  const [, m, d] = deadline.dueDate.split("-").map(Number);
+                  return (
+                    <div key={`${business.id}-${deadline.obligationType}-${i}`} className="flex gap-3 py-3">
+                      <div className="w-[54px] shrink-0 text-center">
+                        <div className="font-mono text-lg leading-tight font-bold">{d}</div>
+                        <div className="text-[10.5px] font-medium tracking-wide text-muted-foreground uppercase">
+                          {MONTH_ABBR[m - 1]}
+                        </div>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[13.5px] font-semibold">{business.name}</div>
+                        <div className="mt-px text-[12.5px] text-muted-foreground">
+                          {OBLIGATION_LABELS[deadline.obligationType] ?? deadline.obligationType}
+                        </div>
+                      </div>
+                      <Badge className={cn("self-start", urgencyClasses(days))}>{urgencyLabel(days)}</Badge>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+interface MonthGridProps {
+  year: number;
+  month: number;
+  deadlinesByDate: Map<string, BusinessDeadline[]>;
+}
+
+function MonthGrid({ year, month, deadlinesByDate }: MonthGridProps) {
+  const firstOfMonth = new Date(year, month, 1);
+  // getDay(): Sun=0..Sat=6 - shifted so Monday is the first column, matching the mockup's
+  // Mon-start week (WEEKDAY_LABELS above).
+  const leadingBlanks = (firstOfMonth.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const todayIso = new Date().toISOString().slice(0, 10);
+
+  const cells: (number | null)[] = [
+    ...Array(leadingBlanks).fill(null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+
+  return (
+    <div className="grid grid-cols-7 gap-1">
+      {WEEKDAY_LABELS.map((label) => (
+        <div key={label} className="pb-1.5 text-center text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
+          {label}
+        </div>
+      ))}
+      {cells.map((day, i) => {
+        if (day === null) return <div key={`blank-${i}`} />;
+
+        const iso = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const dayDeadlines = deadlinesByDate.get(iso) ?? [];
+        const isToday = iso === todayIso;
+
+        return (
+          <div
+            key={iso}
+            className={cn(
+              "flex aspect-square flex-col gap-0.5 rounded-[9px] border p-1.5 font-mono text-xs",
+              isToday ? "border-[1.5px] border-primary bg-primary/6" : "border-border",
+            )}
+          >
+            <span>{day}</span>
+            {dayDeadlines.length > 0 && (
+              <div className="mt-auto flex flex-wrap gap-0.5">
+                {dayDeadlines.map((bd, i) => (
+                  <span
+                    key={i}
+                    className={cn("h-1.5 w-1.5 rounded-full", DOT_CLASSES[urgencyTier(daysUntil(bd.deadline.dueDate))])}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}

@@ -1,5 +1,5 @@
-import { Outlet } from "react-router-dom";
-import { AmbientBackground } from "@/components/AmbientBackground";
+import { Outlet, useLocation } from "react-router-dom";
+import { AmbientBackground, type AmbientTint } from "@/components/AmbientBackground";
 import { NavRail } from "@/components/NavRail";
 import type { Business } from "@/lib/types";
 
@@ -21,10 +21,21 @@ interface ShellProps {
   onLogout: () => void;
 }
 
+// Which ambient tint (issue #63) a given path gets - mirrors the mockup's
+// body[data-section="workpass"|"editbiz"|"calendar"] selectors. Anything not listed (the
+// Businesses list) stays the default teal.
+function tintForPath(pathname: string): AmbientTint {
+  if (pathname === "/calendar") return "brick";
+  if (/^\/businesses\/[^/]+/.test(pathname)) return "brass";
+  return "teal";
+}
+
 export function Shell({ context, onLogout }: ShellProps) {
+  const { pathname } = useLocation();
+
   return (
     <div className="relative grid min-h-screen grid-cols-[220px_1fr] bg-background">
-      <AmbientBackground />
+      <AmbientBackground tint={tintForPath(pathname)} />
       <NavRail onLogout={onLogout} />
       <main className="relative z-10 max-w-[1080px] space-y-4 p-8">
         {context.error && (

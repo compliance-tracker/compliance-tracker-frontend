@@ -1,5 +1,5 @@
 import { NavLink, useParams } from "react-router-dom";
-import { Building2, LogOut, Pencil, ShieldCheck, Users } from "lucide-react";
+import { Building2, CalendarDays, LogOut, Pencil, ShieldCheck, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavRailProps {
@@ -26,6 +26,9 @@ export function NavRail({ onLogout }: NavRailProps) {
       <NavCaption first>Businesses</NavCaption>
       <RailLink to="/businesses" icon={Building2}>
         Businesses
+      </RailLink>
+      <RailLink to="/calendar" icon={CalendarDays}>
+        Calendar
       </RailLink>
 
       <NavCaption>Selected business</NavCaption>
