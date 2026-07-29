@@ -5,12 +5,13 @@ import { DeadlinesPanel } from "@/components/DeadlinesPanel";
 import { WorkPassesPanel } from "@/components/WorkPassesPanel";
 import type { ShellContext } from "@/components/Shell";
 
-// The "Work passes" page reached from the nav rail's "Selected business" section (issue #61) -
-// also shows this business's deadlines above the work-passes table. The redesigned IA (see
+// The "Overview" page reached from the nav rail's "Selected business" section (issue #61) - shows
+// this business's deadlines above its work-passes table. The redesigned IA (see
 // design-handoff.md, NOTES.md §4p) doesn't have a separate per-business deadlines page of its
-// own - cross-business deadlines live in Calendar (a later step), so folding deadlines in here
-// keeps that real, already-built functionality (DeadlinesPanel) somewhere rather than dropping
-// it just because the mockup's nav only names this "Work passes."
+// own - cross-business deadlines live in Calendar - so folding deadlines in here keeps that real,
+// already-built functionality (DeadlinesPanel) somewhere rather than dropping it just because the
+// mockup's nav only named the equivalent link "Work passes." Renamed to "Overview" (issue #65)
+// once that original label turned out to undersell what the page actually shows.
 export function BusinessDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { businesses, loading } = useOutletContext<ShellContext>();

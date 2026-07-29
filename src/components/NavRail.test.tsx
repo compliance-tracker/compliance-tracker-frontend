@@ -25,19 +25,19 @@ describe("NavRail", () => {
     expect(screen.getByRole("link", { name: "Calendar" })).toHaveAttribute("href", "/calendar");
   });
 
-  it("disables Work passes/Edit business (not real links) when no business is selected", () => {
+  it("disables Overview/Edit business (not real links) when no business is selected", () => {
     renderAt("/businesses");
 
-    expect(screen.queryByRole("link", { name: "Work passes" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Overview" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Edit business" })).not.toBeInTheDocument();
-    expect(screen.getByText("Work passes")).toBeInTheDocument();
+    expect(screen.getByText("Overview")).toBeInTheDocument();
     expect(screen.getByText("Edit business")).toBeInTheDocument();
   });
 
-  it("makes Work passes/Edit business real links, scoped to the selected business, once one is selected", () => {
+  it("makes Overview/Edit business real links, scoped to the selected business, once one is selected", () => {
     renderAt("/businesses/42");
 
-    expect(screen.getByRole("link", { name: "Work passes" })).toHaveAttribute("href", "/businesses/42");
+    expect(screen.getByRole("link", { name: "Overview" })).toHaveAttribute("href", "/businesses/42");
     expect(screen.getByRole("link", { name: "Edit business" })).toHaveAttribute("href", "/businesses/42/edit");
   });
 
@@ -45,8 +45,9 @@ describe("NavRail", () => {
     renderAt("/businesses/42/edit");
 
     expect(screen.getByRole("link", { name: "Edit business" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "Work passes" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Overview" })).not.toHaveAttribute("aria-current");
   });
+
 
   it("calls onLogout when the Log out button is clicked", async () => {
     const onLogout = vi.fn();

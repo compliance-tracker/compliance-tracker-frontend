@@ -66,7 +66,7 @@ for watch mode during development.
   handlers) is owned by `App` and passed down to routed pages via `<Outlet context={...}/>`/
   `useOutletContext()` — see `src/components/Shell.tsx`'s `ShellContext` type.
 - `src/components/` — `LoginForm` (login/register, toggles between the two), `NavRail` (the fixed
-  dark sidebar; "Work passes"/"Edit business" are disabled placeholders until a business is
+  dark sidebar; "Overview"/"Edit business" are disabled placeholders until a business is
   selected, real links once one is), `CalendarPage` (fetches every business's deadlines and
   merges them client-side — no combined backend endpoint exists), `StatCard` (summary tiles, with a `severity` prop driving a
   top color stripe), `BusinessesPage` (stat tiles + `BusinessList`, the list's own "View" link
