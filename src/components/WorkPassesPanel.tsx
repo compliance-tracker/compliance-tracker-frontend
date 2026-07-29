@@ -36,6 +36,11 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
   const [expiryDate, setExpiryDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The work pass pending a delete confirmation, if any - a click on the trash icon opens this
+  // instead of deleting immediately (issue #24), matching the same confirm-before-destroying
+  // pattern DeleteBusinessDialog already uses for a whole business.
+  const [pendingDelete, setPendingDelete] = useState<WorkPass | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!business) {
@@ -74,6 +79,7 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
   async function handleDelete(workPassId: number) {
     if (!business) return;
     setError(null);
+    setDeleting(true);
     const previous = workPasses;
     // Optimistic removal - the row disappears immediately rather than waiting on the network,
     // since a delete has nothing meaningful to show while pending. Rolled back below if the
@@ -86,6 +92,9 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
     } catch (err) {
       setWorkPasses(previous);
       setError(err instanceof ApiRequestError ? err.message : "Could not remove work pass. Is the backend running?");
+    } finally {
+      setDeleting(false);
+      setPendingDelete(null);
     }
   }
 
@@ -189,7 +198,7 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
                     <Button
                       size="icon-sm"
                       variant="destructive"
-                      onClick={() => handleDelete(p.id)}
+                      onClick={() => setPendingDelete(p)}
                       aria-label={`Remove ${p.employeeName}'s work pass`}
                     >
                       <Trash2 />
@@ -202,6 +211,29 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
           </Table>
         )}
       </CardContent>
+
+      <Dialog open={pendingDelete !== null} onOpenChange={(open) => !open && setPendingDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove {pendingDelete?.employeeName}'s work pass?</DialogTitle>
+            <DialogDescription>
+              This permanently removes the work pass and its renewal deadline. This can't be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingDelete(null)} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => pendingDelete && handleDelete(pendingDelete.id)}
+              disabled={deleting}
+            >
+              {deleting ? "Removing..." : "Yes, remove"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
