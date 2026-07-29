@@ -1,17 +1,13 @@
 import { NavLink, useParams } from "react-router-dom";
-import { Building2, CalendarDays, LayoutDashboard, LogOut, Pencil, ShieldCheck } from "lucide-react";
+import { Building2, CalendarDays, LayoutDashboard, Pencil, ShieldCheck, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface NavRailProps {
-  onLogout: () => void;
-}
 
 // The persistent dark "harbour" sidebar (Harbour Ledger design, issue #59/#61) - fixed navy in
 // both light/dark theme (--rail-* tokens in index.css never theme-swap), unlike every other
-// surface in the app. Only real, working nav items are shown - no Calendar/Notifications/
-// Account/Admin entries yet, since those pages don't exist until their own later steps (a nav
-// rail full of dead links would be worse than a shorter honest one).
-export function NavRail({ onLogout }: NavRailProps) {
+// surface in the app. Only real, working nav items are shown - no Notifications/Admin entries
+// yet, since those pages don't exist until their own later steps (a nav rail full of dead links
+// would be worse than a shorter honest one).
+export function NavRail() {
   const { id } = useParams<{ id: string }>();
 
   return (
@@ -42,18 +38,10 @@ export function NavRail({ onLogout }: NavRailProps) {
         Edit business
       </RailLink>
 
-      {/* The mockup puts "Log out" on its Account page instead - that page doesn't exist yet
-          (its own later step), and dropping the ability to log out entirely in the meantime
-          isn't acceptable just because the "real" home for it isn't built. Pinned to the
-          bottom of the rail as a placeholder location, to move once Account ships. */}
-      <button
-        type="button"
-        onClick={onLogout}
-        className="mt-auto flex w-full items-center gap-2.5 rounded-[7px] px-2.5 py-2.5 text-[13.5px] font-medium text-rail-fg-muted hover:bg-white/6 hover:text-rail-fg"
-      >
-        <LogOut className="h-[15px] w-[15px] shrink-0" />
-        Log out
-      </button>
+      <NavCaption>Account</NavCaption>
+      <RailLink to="/account" icon={UserRound}>
+        Account
+      </RailLink>
     </nav>
   );
 }
