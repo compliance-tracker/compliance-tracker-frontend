@@ -5,6 +5,18 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>frontend</title>
+    <!-- Issue #20 - applies the .dark class before React (and its own first paint) ever runs,
+         so a returning user with dark mode chosen doesn't see a flash of the light theme first.
+         Deliberately plain JS, not a src/lib/theme.ts import - this has to run synchronously,
+         inline, before any module loads. Keep this logic in sync with src/lib/theme.ts's own
+         getTheme()/THEME_KEY if either ever changes; duplicated on purpose, not an oversight. -->
+    <script>
+      (function () {
+        var stored = localStorage.getItem("compliance-tracker:theme");
+        var dark = stored ? stored === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (dark) document.documentElement.classList.add("dark");
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

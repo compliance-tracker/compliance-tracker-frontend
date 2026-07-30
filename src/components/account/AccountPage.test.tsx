@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Outlet, Route, Routes } from "react-router-dom";
 import { AccountPage } from "./AccountPage";
 import { auth } from "@/lib/auth";
@@ -41,6 +41,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.clearAllMocks();
+  document.documentElement.classList.remove("dark");
 });
 
 describe("AccountPage", () => {
@@ -68,5 +69,34 @@ describe("AccountPage", () => {
     screen.getByRole("button", { name: "Log out" }).click();
 
     expect(onLogout).toHaveBeenCalledOnce();
+  });
+
+  describe("Appearance toggle (issue #20)", () => {
+    it("defaults to Light active when no theme has been chosen yet", () => {
+      renderWithContext(vi.fn());
+
+      expect(screen.getByRole("button", { name: /Light/ })).toHaveAttribute("aria-pressed", "true");
+      expect(screen.getByRole("button", { name: /Dark/ })).toHaveAttribute("aria-pressed", "false");
+    });
+
+    it("clicking Dark applies the .dark class and persists the choice", () => {
+      renderWithContext(vi.fn());
+
+      fireEvent.click(screen.getByRole("button", { name: /Dark/ }));
+
+      expect(document.documentElement.classList.contains("dark")).toBe(true);
+      expect(localStorage.getItem("compliance-tracker:theme")).toBe("dark");
+      expect(screen.getByRole("button", { name: /Dark/ })).toHaveAttribute("aria-pressed", "true");
+    });
+
+    it("clicking Light after Dark removes the .dark class again", () => {
+      renderWithContext(vi.fn());
+
+      fireEvent.click(screen.getByRole("button", { name: /Dark/ }));
+      fireEvent.click(screen.getByRole("button", { name: /Light/ }));
+
+      expect(document.documentElement.classList.contains("dark")).toBe(false);
+      expect(localStorage.getItem("compliance-tracker:theme")).toBe("light");
+    });
   });
 });
