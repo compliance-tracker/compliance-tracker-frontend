@@ -78,7 +78,7 @@ check, not a replacement for it.
   `/verify-email?token=...` (issues #55/#69), and everything else under `App`, which (once
   authenticated) renders a persistent `NavRail` + routed pages (issue #61): `/businesses` (list),
   `/calendar` (every business's deadlines merged into one month grid + upcoming timeline, issue
-  #63), `/businesses/:id` (a business's deadlines + work passes), `/businesses/:id/edit`
+  #63), `/businesses/:id` (a business's deadlines, work passes, and custom obligations), `/businesses/:id/edit`
   (edit/delete), `/account` (registered email, a disabled "Change password" control, log out —
   issue #67), `/notifications` (which reminder channel is currently active — issue #73), and a
   404 fallback for anything else. Page-level state (the fetched businesses
@@ -102,7 +102,9 @@ check, not a replacement for it.
   `WorkPassesPanel` for one business — deadlines colored by urgency: red ≤30 days, amber ≤90 days,
   neutral further out; work passes drive the Employment Pass renewal deadlines, same urgency-badge
   convention, shared logic in `src/lib/urgency.ts`; removing a work pass requires confirming
-  first), `EditBusinessPage` (a full page — the old `EditBusinessDialog` modal's replacement —
+  first), `CustomObligationsPanel` (a business's own user-defined obligations beyond ACRA/GST/work
+  passes — a one-off date, or repeats every N months; add/edit/delete, same
+  confirm-before-removing pattern as work passes), `EditBusinessPage` (a full page — the old `EditBusinessDialog` modal's replacement —
   plus a danger-zone delete reusing `DeleteBusinessDialog`'s confirmation), `AccountPage`
   (registered email — decoded from the JWT's `sub` claim via `auth.getEmail()`, no separate
   "current user" API call needed — a disabled "Change password" control, and log out, moved here

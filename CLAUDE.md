@@ -34,6 +34,7 @@ experience) — explain framework concepts, not just Java/Spring ones.
 - **Labels**: added `area:ui`/`area:auth`/`area:infra`/`area:testing` to this repo, matching the backend's `area:*` convention (previously every issue just had the generic `enhancement` label with no further categorization).
 - **A `fetch()` 401 in a real browser is not the same thing a mocked test sees** — found live via Playwright, not hypothetically, while building #17: the backend's CORS config used to be MVC-level only, which never applied to a response Spring Security's own filter chain rejected early (the exact case a `401` for an expired token is). That meant a real cross-origin `fetch()` against a `401` didn't resolve with a readable `Response` at all — it rejected with an opaque "blocked by CORS policy" error, invisible as a `401` to any `err.message.includes("401")` check. Unit tests never caught this because mocked `fetch` always returns a normal `Response` regardless of CORS. Fixed on the backend side (issue #83) by moving CORS to Security-level. Worth remembering: a Playwright check against a *real* running backend is the only thing that can catch this class of bug — a component test with a mocked `fetch`, however thorough, cannot.
 - **jsdom doesn't implement Pointer Events methods (`hasPointerCapture`/`setPointerCapture`/`releasePointerCapture`) or `scrollIntoView`, which Radix primitives (e.g. `Select`) call internally** — opening a Radix `Select` in a test throws `TypeError: ... is not a function` without a fix. A known, widely-documented gap in the Radix+jsdom+testing-library combination, not a bug in this app's code. Fixed once, centrally, in `src/test/setup.ts` with no-op polyfills for all four (guarded by `typeof ... === "undefined"` so a future jsdom that does implement them isn't silently overridden) — any future test using a Radix primitive that relies on pointer capture benefits automatically, no per-test workaround needed.
+- **jsdom also doesn't implement `ResizeObserver`, which Radix `Checkbox` (via `react-use-size`) calls internally** — same class of gap as the pointer-capture one above, found live building #77's `CustomObligationsPanel` (the first place a Radix `Checkbox` gets exercised via `userEvent` inside a real controlled dialog render). Fixed the same way — a no-op `ResizeObserver` class in `src/test/setup.ts`, guarded the same way. Any future jsdom-environment error naming a browser API Radix calls internally is probably this same pattern — check `src/test/setup.ts` first before assuming it's a real bug.
 - **A too-loose Playwright wait condition can hide the exact bug you're trying to catch** — the first pass at #17's live-verification script waited for `text=Compliance Tracker`, which appears on the login screen's own branding panel *and* the post-login dashboard header, so the script raced ahead and ran its "force an invalid token" step before registration had actually completed. That made the check pass for the wrong reason. Fixed by waiting for something that only exists post-auth (the "Add business" button) instead. General lesson: a suspiciously-fast Playwright "pass" deserves the same scrutiny as a failure — check what the wait condition can actually match before trusting the result.
 
 ## Project status
@@ -364,6 +365,27 @@ folded into the required `build-and-typecheck` check, so a flaky/slow E2E run ca
 on its own — branch protection itself wasn't changed. `vite.config.ts`'s Vitest config now
 excludes `e2e/**` so the two suites (Vitest's own `*.test.tsx` component tests vs. Playwright's
 `*.spec.ts` browser tests) never try to run each other's files.
+
+**#77 (custom obligation CRUD UI, the frontend counterpart to backend #59) is done** — the backend
+API had been fully usable for weeks with nothing exposing it. `CustomObligationsPanel`, added to
+`BusinessDetailPage` alongside `DeadlinesPanel`/`WorkPassesPanel`, follows `WorkPassesPanel`'s
+established pattern (add dialog, table, delete-confirmation dialog) plus a new edit dialog, since
+a custom obligation's fields are meant to be corrected in place, not just removed and re-added.
+Recurrence is a "Repeats" checkbox that reveals a "every N months" number input when checked,
+converting to the backend's nullable `recurrenceMonths` only at submit time. `Deadline` gained
+optional `customName`/`customObligationId` (mirroring the backend's own shape) — `DeadlinesPanel`
+and `CalendarPage` both used to index `OBLIGATION_LABELS[obligationType]` directly, which has no
+entry for `CUSTOM`; fixed with a new `deadlineLabel()` helper in `urgency.ts`, and
+`OBLIGATION_LABELS` itself is now typed to exclude `"CUSTOM"` so a future direct-index attempt is
+a compile error, not a silent `undefined`. Found a second jsdom gap in the same family as the
+Radix `Select`/pointer-capture one (#18, see gotchas below) — Radix `Checkbox`'s own
+`react-use-size` hook calls `ResizeObserver`, which jsdom doesn't implement either; fixed the same
+way, a no-op polyfill in `src/test/setup.ts`. New `CustomObligationsPanel.test.tsx` (8 cases).
+Verified live via a scratch Playwright script against the real running backend (not mocked):
+registered, verified via a real DB-read token, logged in, created a business, added both a
+one-off and a recurring (every-3-months) custom obligation, confirmed both actually appear in
+`DeadlinesPanel` under their own real names, edited one, and confirmed the remove-confirmation
+dialog's Cancel/"Yes, remove" both behave correctly — zero console errors throughout.
 
 Open (not started): #7 (deploy — depends on backend #5).
 

@@ -1,4 +1,4 @@
-import type { ObligationType } from "./types";
+import type { Deadline, ObligationType } from "./types";
 
 // Shared by DeadlinesPanel, WorkPassesPanel, and CalendarPage - all need "how many days until
 // this date, and how urgent does that look" for their own dates (a compliance deadline, a work
@@ -6,11 +6,22 @@ import type { ObligationType } from "./types";
 
 // Human-readable obligation names, moved here from DeadlinesPanel (issue #63) once CalendarPage
 // needed the same mapping - kept with the other deadline-display helpers rather than duplicated.
-export const OBLIGATION_LABELS: Record<ObligationType, string> = {
+// "CUSTOM" has no fixed label - it's whatever the user named their own obligation
+// (Deadline.customName), so it's deliberately not a key here; deadlineLabel() below is what
+// every caller should actually use instead of indexing this map directly.
+export const OBLIGATION_LABELS: Record<Exclude<ObligationType, "CUSTOM">, string> = {
   ACRA_ANNUAL_RETURN: "ACRA Annual Return",
   GST_F5: "GST F5 Filing",
   WORK_PASS_RENEWAL: "Work Pass Renewal",
 };
+
+// A custom obligation (backend issue #59) has no fixed label to look up - it's whatever the user
+// named it (Deadline.customName) - so every place that used to index OBLIGATION_LABELS directly
+// (DeadlinesPanel, CalendarPage) needs this instead, not just the map.
+export function deadlineLabel(deadline: Pick<Deadline, "obligationType" | "customName">): string {
+  if (deadline.obligationType === "CUSTOM") return deadline.customName ?? "Custom obligation";
+  return OBLIGATION_LABELS[deadline.obligationType];
+}
 
 export function daysUntil(dueDate: string): number {
   const due = new Date(dueDate);

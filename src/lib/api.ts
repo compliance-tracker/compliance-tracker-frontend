@@ -1,4 +1,4 @@
-import type { ApiError, Business, NewBusiness, Deadline, Credentials, AuthResponse, RegistrationResponse, WorkPass, NewWorkPass, PageResponse, NotificationStatus } from "./types";
+import type { ApiError, Business, NewBusiness, Deadline, Credentials, AuthResponse, RegistrationResponse, WorkPass, NewWorkPass, CustomObligation, NewCustomObligation, PageResponse, NotificationStatus } from "./types";
 import { auth } from "./auth";
 
 // Thrown by request() on any non-ok response - carries the backend's real ApiError message
@@ -180,6 +180,30 @@ export const api = {
 
   deleteWorkPass: (businessId: number, workPassId: number) =>
     request<void>(`/api/businesses/${businessId}/work-passes/${workPassId}`, {
+      method: "DELETE",
+    }),
+
+  // Backend issue #59 - a business's own user-defined obligations. Same PageResponse unwrap as
+  // getWorkPasses/getBusinesses above (backend issue #49).
+  getCustomObligations: (businessId: number) =>
+    request<PageResponse<CustomObligation>>(`/api/businesses/${businessId}/custom-obligations`).then(
+      (page) => page.content,
+    ),
+
+  createCustomObligation: (businessId: number, obligation: NewCustomObligation) =>
+    request<CustomObligation>(`/api/businesses/${businessId}/custom-obligations`, {
+      method: "POST",
+      body: JSON.stringify(obligation),
+    }),
+
+  updateCustomObligation: (businessId: number, customObligationId: number, obligation: NewCustomObligation) =>
+    request<CustomObligation>(`/api/businesses/${businessId}/custom-obligations/${customObligationId}`, {
+      method: "PUT",
+      body: JSON.stringify(obligation),
+    }),
+
+  deleteCustomObligation: (businessId: number, customObligationId: number) =>
+    request<void>(`/api/businesses/${businessId}/custom-obligations/${customObligationId}`, {
       method: "DELETE",
     }),
 
