@@ -458,6 +458,14 @@ from `theme.ts`'s own logic, since it has to run synchronously before any ES mod
 Verified live: the real computed background color actually changes, the choice survives a real
 page reload, and it applies app-wide, not just on the Account page.
 
+**#25 (custom favicon and page title) is done.** Replaced the default Vite/shadcn-init placeholder
+favicon with a shield-check glyph on a brass-gold square — the same `ShieldCheck` icon already
+used as the brand mark in `NavRail`/`AuthShell`, path data copied straight from lucide-react's own
+source so it's pixel-identical, not just similar. `<title>` changed from the literal "frontend" to
+"Compliance Tracker" (static, app-wide — not per-route dynamic titles, out of this issue's smaller
+"minor branding polish" scope). Verified visually via a Playwright screenshot, not just that the
+file changed.
+
 Open (not started): #7 (deploy — depends on backend #5). No open medium/high-urgency issues
 remain on either repo as of this session.
 
