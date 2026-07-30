@@ -466,6 +466,24 @@ source so it's pixel-identical, not just similar. `<title>` changed from the lit
 "minor branding polish" scope). Verified visually via a Playwright screenshot, not just that the
 file changed.
 
+**#29 (loading skeletons) is done.** Swept beyond the issue's own literal wording — `grep`ed for
+every existing plain `"Loading..."` spot (7 found), then checked `BusinessesPage`/`BusinessList`
+directly and found an eighth, worse gap: no loading indicator at all, not even text. New shared
+`Skeleton` primitive (via the shadcn CLI, not hand-written), `TableRowsSkeleton`
+(`columns`/`rows`) for every panel showing a `Table` mid-fetch, `PageSkeleton` (`cards`) for
+`BusinessDetailPage`/`EditBusinessPage`'s outer "page hasn't loaded yet" state, and
+`StatCardSkeleton` alongside `StatCard` itself. `CalendarPage`'s timeline and
+`NotificationsPage`'s status card each got bespoke one-off skeleton markup instead, since neither
+shape is shared with anything else. New `TableRowsSkeleton.test.tsx` plus two new
+`WorkPassesPanel.test.tsx` cases (never-resolving promise proves the skeleton shows with real
+headers already visible; a resolving one proves it's fully gone once real rows render) —
+representative of the same pattern the other three `TableRowsSkeleton` callers share. Verified
+live via two scratch Playwright scripts against the real backend with every network call
+artificially delayed 800ms (otherwise too fast to ever observe locally) — confirmed real skeleton
+placeholders render and closely match the eventual layout (via screenshots) on Businesses, the
+business detail page, Calendar, and Notifications, and that the skeleton count drops to zero once
+each fetch resolves.
+
 Open (not started): #7 (deploy — depends on backend #5). No open medium/high-urgency issues
 remain on either repo as of this session.
 

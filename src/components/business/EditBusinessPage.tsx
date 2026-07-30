@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DeleteBusinessDialog } from "@/components/business/DeleteBusinessDialog";
 import { FormError } from "@/components/FormError";
+import { PageSkeleton } from "@/components/PageSkeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api, ApiRequestError } from "@/lib/api";
@@ -53,7 +54,7 @@ function EditBusinessForm({ loading, business, onUpdated, onDeleted }: EditBusin
   const [error, setError] = useState<string | null>(null);
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading...</p>;
+    return <PageSkeleton />;
   }
 
   if (!business) {

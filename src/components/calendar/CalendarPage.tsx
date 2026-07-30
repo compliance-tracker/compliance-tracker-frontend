@@ -2,6 +2,7 @@ import { CalendarClock } from "lucide-react";
 import { Link, useOutletContext } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { UrgencyBadge } from "@/components/UrgencyBadge";
 import { cn } from "@/lib/utils";
 import { daysUntil, deadlineLabel, urgencyTier } from "@/lib/urgency";
@@ -76,7 +77,21 @@ export function CalendarPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
+              <div className="divide-y divide-border">
+                {Array.from({ length: 4 }, (_, i) => (
+                  <div key={i} className="flex gap-3 py-3">
+                    <div className="w-[54px] shrink-0 space-y-1.5">
+                      <Skeleton className="mx-auto h-5 w-6" />
+                      <Skeleton className="mx-auto h-2.5 w-8" />
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <Skeleton className="h-3.5 w-1/2" />
+                      <Skeleton className="h-3 w-1/3" />
+                    </div>
+                    <Skeleton className="h-5 w-16 self-start" />
+                  </div>
+                ))}
+              </div>
             ) : upcoming.length === 0 ? (
               <div className="flex flex-col items-center gap-1 py-6 text-center">
                 <div className="mb-2.5 flex h-[50px] w-[50px] items-center justify-center rounded-2xl bg-primary/10 text-primary">
