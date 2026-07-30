@@ -43,6 +43,19 @@ npm test
 Vitest + React Testing Library — no backend/Docker needed, everything's mocked. `npm run test:watch`
 for watch mode during development.
 
+```bash
+npm run test:e2e
+```
+
+Playwright (issue #30) — full-flow browser tests against the real built app (`npm run build` +
+`vite preview`, wired into `playwright.config.ts`'s `webServer`), covering auth, nav-rail
+routing, and business CRUD. Every backend call is intercepted and mocked at the network layer
+(`e2e/mocks.ts`), not a real Spring Boot backend — self-contained, no Docker/Postgres/LocalStack
+needed here either. Distinct from the Vitest suite above (component-level, JS-only) and from this
+project's convention of ad-hoc scratch Playwright scripts for verifying a specific PR's change
+live against the real backend — this is the small, permanent, CI-enforced subset of that kind of
+check, not a replacement for it.
+
 ## Project structure
 
 - `src/lib/types.ts` — TypeScript types mirroring the backend's JSON shapes exactly
