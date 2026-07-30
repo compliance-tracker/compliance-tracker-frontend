@@ -4,6 +4,7 @@ import { Bell, CalendarClock, FileCheck2 } from "lucide-react";
 import { AuthShell, type AuthValueProp } from "@/components/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
+import { FormError } from "@/components/FormError";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api, ApiRequestError } from "@/lib/api";
@@ -106,7 +107,10 @@ export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
       valueProps={VALUE_PROPS}
     >
       {message && (
-        <p className="rounded-md border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-400">
+        <p
+          role="status"
+          className="rounded-md border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-700 dark:text-amber-400"
+        >
           {message}
         </p>
       )}
@@ -196,7 +200,7 @@ export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
                   />
                 </div>
 
-                {error && <p className="text-sm text-destructive">{error}</p>}
+                {error && <FormError>{error}</FormError>}
 
                 <Button type="submit" className="w-full" disabled={submitting}>
                   {submitting ? "Please wait..." : mode === "login" ? "Log in" : "Register"}

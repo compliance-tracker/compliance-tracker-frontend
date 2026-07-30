@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormError } from "@/components/FormError";
+import { UrgencyBadge } from "@/components/UrgencyBadge";
 import {
   Dialog,
   DialogContent,
@@ -16,8 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api, ApiRequestError } from "@/lib/api";
-import { cn } from "@/lib/utils";
-import { daysUntil, urgencyClasses, urgencyLabel } from "@/lib/urgency";
 import type { Business, WorkPass } from "@/lib/types";
 
 interface WorkPassesPanelProps {
@@ -150,7 +149,7 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
                   />
                 </div>
 
-                {error && <p className="text-sm text-destructive">{error}</p>}
+                {error && <FormError>{error}</FormError>}
               </div>
 
               <DialogFooter>
@@ -165,9 +164,7 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
       <CardContent className="space-y-3">
         {/* Shown here (not just inside the add dialog above) since a delete failure - the
             other thing that sets `error` - happens with that dialog closed. */}
-        {error && !dialogOpen && (
-          <p className="text-sm text-destructive">{error}</p>
-        )}
+        {error && !dialogOpen && <FormError>{error}</FormError>}
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading...</p>
         ) : workPasses.length === 0 ? (
@@ -185,14 +182,12 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
               </TableRow>
             </TableHeader>
             <TableBody>
-              {workPasses.map((p) => {
-                const days = daysUntil(p.expiryDate);
-                return (
+              {workPasses.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.employeeName}</TableCell>
                   <TableCell className="font-mono">{p.expiryDate}</TableCell>
                   <TableCell>
-                    <Badge className={cn(urgencyClasses(days))}>{urgencyLabel(days)}</Badge>
+                    <UrgencyBadge dueDate={p.expiryDate} />
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
@@ -205,8 +200,7 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
                     </Button>
                   </TableCell>
                 </TableRow>
-                );
-              })}
+              ))}
             </TableBody>
           </Table>
         )}

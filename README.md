@@ -100,9 +100,10 @@ check, not a replacement for it.
   to 14, 1-90 — and an optional incorporation date, used to validate a first financial year
   doesn't run more than 18 months past incorporation), `BusinessDetailPage` (`DeadlinesPanel` +
   `WorkPassesPanel` for one business — deadlines colored by urgency: red ≤30 days, amber ≤90 days,
-  neutral further out; work passes drive the Employment Pass renewal deadlines, same urgency-badge
-  convention, shared logic in `src/lib/urgency.ts`; removing a work pass requires confirming
-  first), `CustomObligationsPanel` (a business's own user-defined obligations beyond ACRA/GST/work
+  neutral further out; work passes drive the Employment Pass renewal deadlines, same shared
+  `UrgencyBadge` (color + an `AlertTriangle`/`Clock`/`CalendarCheck` icon per tier, not color
+  alone — issue #26) everywhere a deadline/expiry is shown, backed by `src/lib/urgency.ts`;
+  removing a work pass requires confirming first), `CustomObligationsPanel` (a business's own user-defined obligations beyond ACRA/GST/work
   passes — a one-off date, or repeats every N months; add/edit/delete, same
   confirm-before-removing pattern as work passes), `EditBusinessPage` (a full page — the old `EditBusinessDialog` modal's replacement —
   plus a danger-zone delete reusing `DeleteBusinessDialog`'s confirmation), `AccountPage`

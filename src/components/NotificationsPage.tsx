@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { FormError } from "@/components/FormError";
 import { api } from "@/lib/api";
 import type { NotificationStatus } from "@/lib/types";
 
@@ -35,7 +36,7 @@ export function NotificationsPage() {
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading...</p>
           ) : error ? (
-            <p className="text-sm text-destructive">{error}</p>
+            <FormError>{error}</FormError>
           ) : (
             status && (
               <>

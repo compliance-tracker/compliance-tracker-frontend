@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DeleteBusinessDialog } from "@/components/DeleteBusinessDialog";
+import { FormError } from "@/components/FormError";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api, ApiRequestError } from "@/lib/api";
@@ -153,7 +154,7 @@ function EditBusinessForm({ loading, business, onUpdated, onDeleted }: EditBusin
               </div>
             </div>
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && <FormError>{error}</FormError>}
 
             <Button type="submit" disabled={submitting}>
               {submitting ? "Saving..." : "Save changes"}

@@ -387,6 +387,28 @@ one-off and a recurring (every-3-months) custom obligation, confirmed both actua
 `DeadlinesPanel` under their own real names, edited one, and confirmed the remove-confirmation
 dialog's Cancel/"Yes, remove" both behave correctly — zero console errors throughout.
 
-Open (not started): #7 (deploy — depends on backend #5).
+**#26 (accessibility pass) is done.** Read the codebase first rather than assuming what needed
+fixing — icon-only buttons already all had `aria-label`s, lucide-react already auto-applies
+`aria-hidden="true"` to purely decorative icons, and shadcn's `button.tsx`/`badge.tsx` already
+ship `focus-visible` ring styling everywhere. Three real, concrete gaps found instead: (1) the
+Calendar page's month-grid day-dots were a genuine color-only violation — no text/shape difference
+at all, unlike every urgency *badge* elsewhere (which already had text) — fixed with
+shape-differentiated dots (`DOT_SHAPE_CLASSES`: filled circle / rotated square / hollow ring) plus
+a real `aria-label` per day cell summarizing its deadlines in words; (2) urgency badges gained a
+per-tier icon on top of their existing text (`AlertTriangle`/`Clock`/`CalendarCheck`), extracted
+into a shared `UrgencyBadge` component now used by all four places that used to build the same
+badge inline (`DeadlinesPanel`, `WorkPassesPanel`, `CustomObligationsPanel`, `CalendarPage`); (3) a
+real ARIA-announcement gap across all 11 form-error `<p>` sites app-wide — none had `role="alert"`,
+so a screen reader user only found out about a validation error by manually navigating to it —
+fixed via a shared `FormError` component (`role="alert"`). Keyboard-nav review was mostly a
+verification pass (every control is already a real button/link/input, Radix handles Dialog/Select/
+Checkbox focus internally) — confirmed live via keyboard-only Playwright that Tab/Enter completes
+registration end to end with a real visible focus indicator throughout, nothing needed fixing
+there. New `UrgencyBadge.test.tsx`/`FormError.test.tsx`, plus `deadlineLabel` cases added to
+`urgency.test.ts`. Verified live via Playwright against the real backend: the keyboard-only flow,
+and a second script confirming the calendar day-cell `aria-label`/shape markup actually renders.
+
+Open (not started): #7 (deploy — depends on backend #5). #34 (browser push notifications) is the
+one remaining medium-urgency issue.
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.

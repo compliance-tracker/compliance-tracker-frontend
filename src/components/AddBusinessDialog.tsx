@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FormError } from "@/components/FormError";
 import { api, ApiRequestError } from "@/lib/api";
 import type { Business } from "@/lib/types";
 
@@ -129,7 +130,7 @@ export function AddBusinessDialog({ onCreated }: AddBusinessDialogProps) {
               />
             </div>
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && <FormError>{error}</FormError>}
           </div>
 
           <DialogFooter>

@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { FormError } from "@/components/FormError";
 import { api, ApiRequestError } from "@/lib/api";
 import type { Business } from "@/lib/types";
 
@@ -53,7 +54,7 @@ export function DeleteBusinessDialog({ business, onDeleted }: DeleteBusinessDial
           </DialogDescription>
         </DialogHeader>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {error && <FormError>{error}</FormError>}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={deleting}>

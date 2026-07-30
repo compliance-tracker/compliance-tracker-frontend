@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { CalendarClock } from "lucide-react";
 import { Link, useOutletContext } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UrgencyBadge } from "@/components/UrgencyBadge";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { daysUntil, deadlineLabel, urgencyClasses, urgencyLabel, urgencyTier } from "@/lib/urgency";
+import { daysUntil, deadlineLabel, urgencyTier } from "@/lib/urgency";
 import type { ShellContext } from "@/components/Shell";
 import type { Business, Deadline } from "@/lib/types";
 
@@ -22,10 +22,15 @@ interface BusinessDeadline {
   deadline: Deadline;
 }
 
-const DOT_CLASSES: Record<string, string> = {
-  high: "bg-destructive",
-  med: "bg-amber",
-  low: "bg-muted-foreground",
+// Issue #26 (accessibility pass): shape-differentiated, not just color-differentiated - a
+// colorblind user couldn't previously tell a "due soon" day from a "not urgent" one at all, since
+// every dot was identical apart from hue (a solid bg-destructive/bg-amber/bg-muted-foreground
+// circle). Each tier now has a genuinely different shape too (filled circle / rotated square /
+// hollow ring), on top of color, so the distinction survives even with color removed entirely.
+const DOT_SHAPE_CLASSES: Record<string, string> = {
+  high: "h-1.5 w-1.5 rounded-full bg-destructive",
+  med: "h-1.5 w-1.5 rotate-45 bg-amber",
+  low: "h-1.5 w-1.5 rounded-full border border-muted-foreground bg-transparent",
 };
 
 // The mockup's Calendar page (issue #63/#19) - a month grid plus an "upcoming, all businesses"
@@ -112,7 +117,6 @@ export function CalendarPage() {
             ) : (
               <div className="divide-y divide-border">
                 {upcoming.map(({ business, deadline }, i) => {
-                  const days = daysUntil(deadline.dueDate);
                   const [, m, d] = deadline.dueDate.split("-").map(Number);
                   return (
                     <div key={`${business.id}-${deadline.obligationType}-${i}`} className="flex gap-3 py-3">
@@ -128,7 +132,7 @@ export function CalendarPage() {
                           {deadlineLabel(deadline)}
                         </div>
                       </div>
-                      <Badge className={cn("self-start", urgencyClasses(days))}>{urgencyLabel(days)}</Badge>
+                      <UrgencyBadge dueDate={deadline.dueDate} className="self-start" />
                     </div>
                   );
                 })}
@@ -174,6 +178,17 @@ function MonthGrid({ year, month, deadlinesByDate }: MonthGridProps) {
         const dayDeadlines = deadlinesByDate.get(iso) ?? [];
         const isToday = iso === todayIso;
 
+        // The dots convey real information (what's due, and how urgent) with nothing else on
+        // the page carrying it in text form - a screen reader's virtual cursor otherwise only
+        // ever hears the bare day number. This aria-label is the accessible equivalent of "look
+        // at the colored/shaped dots," not a duplicate of anything already readable elsewhere.
+        const dayLabel =
+          dayDeadlines.length > 0
+            ? `${day}, ${dayDeadlines.length} deadline${dayDeadlines.length > 1 ? "s" : ""}: ${dayDeadlines
+                .map((bd) => `${deadlineLabel(bd.deadline)} for ${bd.business.name}`)
+                .join(", ")}`
+            : undefined;
+
         return (
           <div
             key={iso}
@@ -181,15 +196,13 @@ function MonthGrid({ year, month, deadlinesByDate }: MonthGridProps) {
               "flex aspect-square flex-col gap-0.5 rounded-[9px] border p-1.5 font-mono text-xs",
               isToday ? "border-[1.5px] border-primary bg-primary/6" : "border-border",
             )}
+            aria-label={dayLabel}
           >
-            <span>{day}</span>
+            <span aria-hidden={dayLabel ? "true" : undefined}>{day}</span>
             {dayDeadlines.length > 0 && (
-              <div className="mt-auto flex flex-wrap gap-0.5">
+              <div className="mt-auto flex flex-wrap gap-0.5" aria-hidden="true">
                 {dayDeadlines.map((bd, i) => (
-                  <span
-                    key={i}
-                    className={cn("h-1.5 w-1.5 rounded-full", DOT_CLASSES[urgencyTier(daysUntil(bd.deadline.dueDate))])}
-                  />
+                  <span key={i} className={DOT_SHAPE_CLASSES[urgencyTier(daysUntil(bd.deadline.dueDate))]} />
                 ))}
               </div>
             )}

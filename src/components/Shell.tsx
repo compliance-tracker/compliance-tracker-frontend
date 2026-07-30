@@ -91,7 +91,10 @@ export function Shell({ context }: ShellProps) {
 
       <main className="relative z-10 max-w-[1080px] space-y-4 p-8">
         {context.error && (
-          <p className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <p
+            role="alert"
+            className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          >
             {context.error}
           </p>
         )}
