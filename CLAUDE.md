@@ -36,6 +36,8 @@ experience) — explain framework concepts, not just Java/Spring ones.
 - **A `fetch()` 401 in a real browser is not the same thing a mocked test sees** — found live via Playwright, not hypothetically, while building #17: the backend's CORS config used to be MVC-level only, which never applied to a response Spring Security's own filter chain rejected early (the exact case a `401` for an expired token is). That meant a real cross-origin `fetch()` against a `401` didn't resolve with a readable `Response` at all — it rejected with an opaque "blocked by CORS policy" error, invisible as a `401` to any `err.message.includes("401")` check. Unit tests never caught this because mocked `fetch` always returns a normal `Response` regardless of CORS. Fixed on the backend side (issue #83) by moving CORS to Security-level. Worth remembering: a Playwright check against a *real* running backend is the only thing that can catch this class of bug — a component test with a mocked `fetch`, however thorough, cannot.
 - **jsdom doesn't implement Pointer Events methods (`hasPointerCapture`/`setPointerCapture`/`releasePointerCapture`) or `scrollIntoView`, which Radix primitives (e.g. `Select`) call internally** — opening a Radix `Select` in a test throws `TypeError: ... is not a function` without a fix. A known, widely-documented gap in the Radix+jsdom+testing-library combination, not a bug in this app's code. Fixed once, centrally, in `src/test/setup.ts` with no-op polyfills for all four (guarded by `typeof ... === "undefined"` so a future jsdom that does implement them isn't silently overridden) — any future test using a Radix primitive that relies on pointer capture benefits automatically, no per-test workaround needed.
 - **jsdom also doesn't implement `ResizeObserver`, which Radix `Checkbox` (via `react-use-size`) calls internally** — same class of gap as the pointer-capture one above, found live building #77's `CustomObligationsPanel` (the first place a Radix `Checkbox` gets exercised via `userEvent` inside a real controlled dialog render). Fixed the same way — a no-op `ResizeObserver` class in `src/test/setup.ts`, guarded the same way. Any future jsdom-environment error naming a browser API Radix calls internally is probably this same pattern — check `src/test/setup.ts` first before assuming it's a real bug.
+- **jsdom doesn't implement `window.matchMedia` at all** — `src/lib/theme.ts` (issue #20) calls it to fall back to the OS's `prefers-color-scheme` when no explicit theme choice exists yet. Same jsdom-gap family as `ResizeObserver`/pointer-capture above; fixed with a default "doesn't match anything" stub in `src/test/setup.ts`, guarded the same way — individual tests exercising the actual OS-preference behavior override it with `vi.spyOn` instead of relying on the stub.
+- **A raw `element.click()` in a test doesn't guarantee React's batched state update has actually committed by the time the next assertion runs** — only `fireEvent.click()`/`userEvent` (both wrap the call in `act()`) guarantee that. `AccountPage.test.tsx`'s pre-existing Log-out test got away with plain `.click()` since it only asserts a mock was called (synchronous, no re-render involved) — its new Appearance-toggle tests (issue #20), which assert on `aria-pressed` changing after a click, needed `fireEvent.click()` instead. Any future test asserting on a DOM attribute/text that only changes *after* a state update needs `fireEvent`/`userEvent`, not a raw `.click()`.
 - **A too-loose Playwright wait condition can hide the exact bug you're trying to catch** — the first pass at #17's live-verification script waited for `text=Compliance Tracker`, which appears on the login screen's own branding panel *and* the post-login dashboard header, so the script raced ahead and ran its "force an invalid token" step before registration had actually completed. That made the check pass for the wrong reason. Fixed by waiting for something that only exists post-auth (the "Add business" button) instead. General lesson: a suspiciously-fast Playwright "pass" deserves the same scrutiny as a failure — check what the wait condition can actually match before trusting the result.
 
 ## Project status
@@ -439,6 +441,22 @@ against the real backend: granted real browser permission via Playwright, create
 a deadline due today, confirmed a real `Notification` fires with the right title/body, navigated
 elsewhere to prove it isn't page-scoped, then reloaded and confirmed the same deadline doesn't
 notify twice (dedup surviving a real reload, not just a React re-render).
+
+**`src/components/` was reorganized by feature** (`auth/`, `business/`, `calendar/`,
+`notifications/`, `account/`, `shell/`, plus `FormError.tsx`/`UrgencyBadge.tsx` staying at the
+top level as genuinely cross-feature) — mirrors the backend's own package-by-feature restructure
+(backend issue #90), requested directly, confirmed the grouping scheme with the user first
+(feature/domain over by-component-type). A mechanical move in the end since every cross-component
+import already used the `@/components/...` alias — see the gotcha above.
+
+**#20 (dark mode toggle) is done.** The dark palette existed since #59 with no way to switch into
+it — new `src/lib/theme.ts` around the repo's existing `.dark`-class convention, a Light/Dark
+segmented toggle on the Account page matching `LoginForm`'s own Log in/Sign up pill pattern, and a
+small inline script in `index.html` (ahead of any module loading) so a returning user with dark
+mode chosen never sees a flash of the light theme first — deliberately duplicated, not imported,
+from `theme.ts`'s own logic, since it has to run synchronously before any ES module exists.
+Verified live: the real computed background color actually changes, the choice survives a real
+page reload, and it applies app-wide, not just on the Account page.
 
 Open (not started): #7 (deploy — depends on backend #5). No open medium/high-urgency issues
 remain on either repo as of this session.

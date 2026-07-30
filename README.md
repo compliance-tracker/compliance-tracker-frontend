@@ -62,6 +62,14 @@ check, not a replacement for it.
   (`Business`, `Deadline`, `Credentials`, `AuthResponse`) — no transformation layer between the two.
 - `src/lib/auth.ts` — stores/retrieves both the access and refresh JWTs in `localStorage`
   (survives a refresh/new tab, unlike `sessionStorage`).
+- `src/lib/theme.ts` — light/dark theme preference (issue #20), a plain `.dark` class on
+  `<html>` (index.css's own existing convention, populated since the Harbour Ledger redesign,
+  issue #59, ahead of any toggle existing), stored in `localStorage`, falling back to the OS's
+  own `prefers-color-scheme` when nothing has been explicitly chosen yet. `index.html` also
+  applies it via a small inline script *before* React mounts, so a returning user with dark mode
+  chosen never sees a flash of the light theme first — kept manually in sync with this module's
+  own storage key, duplicated on purpose since that script has to run synchronously before any
+  module loads.
 - `src/lib/api.ts` — thin fetch wrapper against the backend, base URL from
   `VITE_API_BASE_URL`. Attaches the stored access token (if any) to every request automatically.
   On a `401`, transparently exchanges the refresh token for a new pair and retries once before
@@ -117,7 +125,8 @@ check, not a replacement for it.
     via `localStorage`; a plain Web Notification, not the full Push API, so it only ever fires
     while the app is actually open in a tab, not a true background push).
   - `account/` — `AccountPage` (registered email, decoded from the JWT's `sub` claim via
-    `auth.getEmail()`; a disabled "Change password" control; log out).
+    `auth.getEmail()`; a disabled "Change password" control; log out; a Light/Dark appearance
+    toggle, issue #20 — this-browser-only via `localStorage`, not synced to the account).
   - `shell/` — `Shell` (the authenticated layout: nav rail, mobile topbar/drawer, ambient
     background, session-expired banner), `NavRail` (the fixed dark sidebar; "Overview"/"Edit
     business" are disabled placeholders until a business is selected), `AmbientBackground` (a

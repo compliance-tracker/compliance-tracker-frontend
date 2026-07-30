@@ -35,6 +35,23 @@ if (typeof globalThis.ResizeObserver === "undefined") {
   };
 }
 
+// jsdom also doesn't implement window.matchMedia at all - src/lib/theme.ts (issue #20) calls it
+// to fall back to the OS's prefers-color-scheme when no explicit theme has been chosen yet. Same
+// class of gap as ResizeObserver above; a default "doesn't match" stub is enough for tests that
+// don't care about this specifically (individual theme tests override it with vi.spyOn instead).
+if (typeof window.matchMedia === "undefined") {
+  window.matchMedia = (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  });
+}
+
 // React Testing Library normally auto-registers this via a global afterEach, but that
 // detection relies on Vitest's `globals` mode being on - deliberately off here (see
 // vite.config.ts) so test files import describe/it/expect explicitly instead. Without this,
