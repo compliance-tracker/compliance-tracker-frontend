@@ -6,7 +6,7 @@ import { UrgencyBadge } from "@/components/UrgencyBadge";
 import { cn } from "@/lib/utils";
 import { daysUntil, deadlineLabel, urgencyTier } from "@/lib/urgency";
 import { useAllDeadlines, type BusinessDeadline } from "@/lib/useAllDeadlines";
-import type { ShellContext } from "@/components/Shell";
+import type { ShellContext } from "@/components/shell/Shell";
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTH_LABELS = [

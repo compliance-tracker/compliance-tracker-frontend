@@ -3,12 +3,12 @@ import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DeleteBusinessDialog } from "@/components/DeleteBusinessDialog";
+import { DeleteBusinessDialog } from "@/components/business/DeleteBusinessDialog";
 import { FormError } from "@/components/FormError";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api, ApiRequestError } from "@/lib/api";
-import type { ShellContext } from "@/components/Shell";
+import type { ShellContext } from "@/components/shell/Shell";
 import type { Business } from "@/lib/types";
 
 // A full page (issue #61), replacing the old EditBusinessDialog modal - same fields, same

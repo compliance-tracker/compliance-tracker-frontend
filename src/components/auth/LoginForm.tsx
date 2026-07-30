@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Bell, CalendarClock, FileCheck2 } from "lucide-react";
-import { AuthShell, type AuthValueProp } from "@/components/AuthShell";
+import { AuthShell, type AuthValueProp } from "@/components/auth/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { FormError } from "@/components/FormError";

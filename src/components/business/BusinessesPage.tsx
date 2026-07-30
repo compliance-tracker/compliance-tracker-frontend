@@ -1,9 +1,9 @@
 import { Building2, CheckCircle2, XCircle } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
-import { AddBusinessDialog } from "@/components/AddBusinessDialog";
-import { BusinessList } from "@/components/BusinessList";
-import { StatCard } from "@/components/StatCard";
-import type { ShellContext } from "@/components/Shell";
+import { AddBusinessDialog } from "@/components/business/AddBusinessDialog";
+import { BusinessList } from "@/components/business/BusinessList";
+import { StatCard } from "@/components/shell/StatCard";
+import type { ShellContext } from "@/components/shell/Shell";
 
 // The top-level "Businesses" page (issue #61) - what main.tsx's App used to render inline as
 // the whole dashboard. The stat tiles + business table now live here specifically, not the

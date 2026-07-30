@@ -83,56 +83,50 @@ check, not a replacement for it.
   issue #67), `/notifications` (which reminder channel is currently active — issue #73), and a
   404 fallback for anything else. Page-level state (the fetched businesses
   list, create/update/delete handlers, `onLogout`) is owned by `App` and passed down to routed
-  pages via `<Outlet context={...}/>`/`useOutletContext()` — see `src/components/Shell.tsx`'s
+  pages via `<Outlet context={...}/>`/`useOutletContext()` — see `src/components/shell/Shell.tsx`'s
   `ShellContext` type.
-- `src/components/` — `LoginForm` (login/register, toggles between the two — registering no
-  longer logs you in directly, since login now requires a verified email; shows a "check your
-  email" screen instead, with a resend-verification-email option, issue #75), `NavRail` (the fixed
-  dark sidebar; "Overview"/"Edit business" are disabled placeholders until a business is
-  selected, real links once one is; an off-canvas drawer below the `lg` breakpoint — a hamburger
-  topbar in `Shell.tsx` toggles it, closing automatically on navigation or a backdrop tap, issue
-  #71), `CalendarPage` (fetches every business's deadlines and
-  merges them client-side — no combined backend endpoint exists), `StatCard` (summary tiles, with a `severity` prop driving a
-  top color stripe), `BusinessesPage` (stat tiles + `BusinessList`, the list's own "View" link
-  navigates to a business's detail page), `BusinessList` (search by name, filter by GST status,
-  sort by name/FYE with a direction toggle, all client-side over the already-fetched list),
-  `AddBusinessDialog` (name, financial year end, GST status, reminder lead time in days — defaults
-  to 14, 1-90 — and an optional incorporation date, used to validate a first financial year
-  doesn't run more than 18 months past incorporation), `BusinessDetailPage` (`DeadlinesPanel` +
-  `WorkPassesPanel` for one business — deadlines colored by urgency: red ≤30 days, amber ≤90 days,
-  neutral further out; work passes drive the Employment Pass renewal deadlines, same shared
-  `UrgencyBadge` (color + an `AlertTriangle`/`Clock`/`CalendarCheck` icon per tier, not color
-  alone — issue #26) everywhere a deadline/expiry is shown, backed by `src/lib/urgency.ts`;
-  removing a work pass requires confirming first), `CustomObligationsPanel` (a business's own user-defined obligations beyond ACRA/GST/work
-  passes — a one-off date, or repeats every N months; add/edit/delete, same
-  confirm-before-removing pattern as work passes), `EditBusinessPage` (a full page — the old `EditBusinessDialog` modal's replacement —
-  plus a danger-zone delete reusing `DeleteBusinessDialog`'s confirmation), `AccountPage`
-  (registered email — decoded from the JWT's `sub` claim via `auth.getEmail()`, no separate
-  "current user" API call needed — a disabled "Change password" control, and log out, moved here
-  from a temporary placeholder button on the nav rail once this page existed to hold it),
-  `AuthShell` (the split brand-panel + form-panel layout shared by `LoginForm`/
-  `ForgotPasswordPage`/`ResetPasswordPage`, issue #69), `VerifyEmailPage` (a lighter, centered
-  single-card treatment instead — verification is informational-only and non-blocking, so it
-  doesn't carry the same visual weight as a real auth gate; calls the real
-  `POST /api/auth/verify-email` on mount using the URL's `?token=`), `NotificationsPage`
-  (read-only — which `NotificationSender` channel is active and, if email, its from-address;
-  app-level server config, not a per-account setting, and deliberately no "recently sent" history
-  table since no backend endpoint exists for that — issue #73; plus a per-account "Notify me in
-  this browser" toggle, issue #34), `BrowserNotificationWatcher` (rendered once in `Shell`, no
-  visible UI — polls every business's deadlines and fires a real browser `Notification` for one
-  newly within that business's own reminder lead time, deduped via `localStorage`; a plain Web
-  Notification, not the full Push API, so it only ever fires while the app is actually open in a
-  tab, not a true background push).
-- `src/components/ui/` — shadcn/ui primitives (owned code, not an npm dependency — copied in
-  via the shadcn CLI, edit freely).
-- `src/components/ErrorBoundary.tsx` — top-level React error boundary, wrapped around `<App />`
-  in `main.tsx`. Catches any otherwise-uncaught render error and shows a "Something went wrong"
-  fallback with a reload button instead of a blank white screen.
-- `src/components/AmbientBackground.tsx` — a fixed, low-opacity "depth-sounding" motif (concentric
-  rings + a slow rotating sweep) behind all page content, part of the "Harbour Ledger" design
-  (issue #59). Respects `prefers-reduced-motion` via Tailwind's `motion-safe:` variant. Re-tints
-  per section (issue #63) — teal by default, brass on a business's own pages, brick-red on
-  Calendar — decided by `Shell.tsx` from the current route.
+- `src/components/` is organized **by feature**, not by component type — mirrors the backend's own
+  package-by-feature restructure (backend issue #90). Two components sit at the top level rather
+  than inside a feature folder, since they're genuinely cross-feature: `FormError` (`role="alert"`
+  error message, used by nearly every form across the app) and `UrgencyBadge` (the shared
+  color+icon+text urgency indicator, used by deadlines/work-passes/custom-obligations/calendar
+  alike). `src/components/ui/` (shadcn/ui primitives, owned code copied in via the shadcn CLI —
+  edit freely) is unaffected, staying exactly where it was.
+  - `auth/` — `LoginForm` (login/register, toggles between the two — registering no longer logs
+    you in directly, since login now requires a verified email; shows a "check your email" screen
+    instead, with a resend-verification-email option shown both right after registering and again
+    on a later login attempt if the account is still unverified — issues #75/#81), `AuthShell`
+    (the split brand-panel + form-panel layout shared by `LoginForm`/`ForgotPasswordPage`/
+    `ResetPasswordPage`, issue #69), `ForgotPasswordPage`/`ResetPasswordPage`, `VerifyEmailPage`
+    (a lighter, centered single-card treatment — verification is informational-only and
+    non-blocking; calls the real `POST /api/auth/verify-email` on mount using the URL's `?token=`).
+  - `business/` — `BusinessesPage` (stat tiles + `BusinessList`, the list's own "View" link
+    navigates to a business's detail page), `BusinessList` (search/filter/sort, all client-side),
+    `AddBusinessDialog`/`EditBusinessPage` (name, FYE, GST status, reminder lead time 1-90 days,
+    optional incorporation date), `DeleteBusinessDialog`, `BusinessDetailPage` (`DeadlinesPanel` +
+    `WorkPassesPanel` + `CustomObligationsPanel` for one business), `WorkPassesPanel`,
+    `CustomObligationsPanel` (a business's own user-defined obligations — a one-off date, or
+    repeats every N months), `DeadlinesPanel`.
+  - `calendar/` — `CalendarPage` (fetches every business's deadlines via `useAllDeadlines` and
+    merges them client-side into a month grid + upcoming timeline — no combined backend endpoint
+    exists).
+  - `notifications/` — `NotificationsPage` (read-only status of which `NotificationSender` channel
+    is active, plus a "Notify me in this browser" toggle, issue #34), `BrowserNotificationWatcher`
+    (rendered once in `Shell`, no visible UI — polls every business's deadlines and fires a real
+    browser `Notification` for one newly within that business's own reminder lead time, deduped
+    via `localStorage`; a plain Web Notification, not the full Push API, so it only ever fires
+    while the app is actually open in a tab, not a true background push).
+  - `account/` — `AccountPage` (registered email, decoded from the JWT's `sub` claim via
+    `auth.getEmail()`; a disabled "Change password" control; log out).
+  - `shell/` — `Shell` (the authenticated layout: nav rail, mobile topbar/drawer, ambient
+    background, session-expired banner), `NavRail` (the fixed dark sidebar; "Overview"/"Edit
+    business" are disabled placeholders until a business is selected), `AmbientBackground` (a
+    fixed, low-opacity "depth-sounding" motif — concentric rings + a slow rotating sweep — behind
+    all page content, part of the "Harbour Ledger" design, issue #59; respects
+    `prefers-reduced-motion`; re-tints per section, issue #63), `StatCard` (summary tiles with a
+    `severity` prop driving a top color stripe), `NotFoundPage`, `ErrorBoundary` (top-level React
+    error boundary, wrapped around `<App />` in `main.tsx` — catches any otherwise-uncaught render
+    error with a "Something went wrong" fallback instead of a blank white screen).
 
 ## Design system
 
