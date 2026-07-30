@@ -30,6 +30,12 @@ test("adding a business shows it in the list without a page refetch", async ({ p
 });
 
 test("searching the business list filters by name client-side", async ({ page }) => {
+  // Shell mounts BrowserNotificationWatcher (issue #34) on every authenticated page, which
+  // fetches every business's own deadlines regardless of which page is showing - needs a mock
+  // now too, even though this test itself is only about search/filter behavior.
+  await page.route("**/api/businesses/*/deadlines", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify([]) }),
+  );
   await page.route("**/api/businesses", (route) =>
     route.fulfill({
       status: 200,

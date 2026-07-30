@@ -1,14 +1,12 @@
-import { useEffect, useState } from "react";
 import { CalendarClock } from "lucide-react";
 import { Link, useOutletContext } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UrgencyBadge } from "@/components/UrgencyBadge";
-import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { daysUntil, deadlineLabel, urgencyTier } from "@/lib/urgency";
+import { useAllDeadlines, type BusinessDeadline } from "@/lib/useAllDeadlines";
 import type { ShellContext } from "@/components/Shell";
-import type { Business, Deadline } from "@/lib/types";
 
 const WEEKDAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const MONTH_LABELS = [
@@ -16,11 +14,6 @@ const MONTH_LABELS = [
   "July", "August", "September", "October", "November", "December",
 ];
 const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-interface BusinessDeadline {
-  business: Business;
-  deadline: Deadline;
-}
 
 // Issue #26 (accessibility pass): shape-differentiated, not just color-differentiated - a
 // colorblind user couldn't previously tell a "due soon" day from a "not urgent" one at all, since
@@ -41,24 +34,7 @@ const DOT_SHAPE_CLASSES: Record<string, string> = {
 // search/sort/filter already relies on).
 export function CalendarPage() {
   const { businesses, loading: businessesLoading } = useOutletContext<ShellContext>();
-  const [allDeadlines, setAllDeadlines] = useState<BusinessDeadline[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (businesses.length === 0) {
-      setAllDeadlines([]);
-      return;
-    }
-
-    setLoading(true);
-    Promise.all(
-      businesses.map((business) =>
-        api.getDeadlines(business.id).then((deadlines) => deadlines.map((deadline) => ({ business, deadline }))),
-      ),
-    )
-      .then((perBusiness) => setAllDeadlines(perBusiness.flat()))
-      .finally(() => setLoading(false));
-  }, [businesses]);
+  const { allDeadlines, loading } = useAllDeadlines(businesses);
 
   const today = new Date();
   const year = today.getFullYear();
