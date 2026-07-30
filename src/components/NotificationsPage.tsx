@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { Mail } from "lucide-react";
+import { Bell, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { FormError } from "@/components/FormError";
+import * as browserNotifications from "@/lib/browserNotifications";
 import { api } from "@/lib/api";
 import type { NotificationStatus } from "@/lib/types";
 
@@ -15,6 +18,11 @@ export function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Not reactive sources (localStorage, the browser's own Notification.permission) - read once
+  // into real state so a toggle/permission-prompt result actually re-renders this page.
+  const [browserEnabled, setBrowserEnabled] = useState(() => browserNotifications.isEnabled());
+  const [permission, setPermission] = useState(() => browserNotifications.getPermission());
+
   useEffect(() => {
     api
       .getNotificationStatus()
@@ -22,6 +30,24 @@ export function NotificationsPage() {
       .catch(() => setError("Could not load notification status. Is the backend running?"))
       .finally(() => setLoading(false));
   }, []);
+
+  async function handleToggleBrowserNotifications(checked: boolean) {
+    if (!checked) {
+      browserNotifications.setEnabled(false);
+      setBrowserEnabled(false);
+      return;
+    }
+
+    // Only actually prompts the browser the first time - a permission the user already
+    // granted/denied resolves immediately with that same value, no second prompt shown.
+    const result = await browserNotifications.requestPermission();
+    setPermission(result);
+    // Only turn the in-app preference on if permission was actually granted - otherwise the
+    // checkbox would show "on" for a channel that can never actually fire anything.
+    const enabled = result === "granted";
+    browserNotifications.setEnabled(enabled);
+    setBrowserEnabled(enabled);
+  }
 
   return (
     <div className="space-y-6">
@@ -35,7 +61,7 @@ export function NotificationsPage() {
           {loading ? (
             <p className="text-sm text-muted-foreground">Loading...</p>
           ) : error ? (
-            <p className="text-sm text-destructive">{error}</p>
+            <FormError>{error}</FormError>
           ) : (
             status && (
               <>
@@ -65,6 +91,58 @@ export function NotificationsPage() {
                 </p>
               </>
             )
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-sm">
+        <CardContent>
+          <div className="flex items-center gap-3.5 pb-4.5">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-primary/14 text-primary">
+              <Bell className="h-[18px] w-[18px]" />
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-semibold">Browser notifications</div>
+              <div className="mt-0.5 text-[12.5px] text-muted-foreground">
+                An interim reminder channel, per account, that needs nothing but your browser's
+                own permission — no email setup required.
+              </div>
+            </div>
+            {browserEnabled && (
+              <Badge variant="secondary" className="bg-primary/14 text-primary">
+                On
+              </Badge>
+            )}
+          </div>
+
+          {!browserNotifications.isSupported() ? (
+            <p className="text-[12.5px] text-muted-foreground">
+              Your browser doesn't support notifications, so this isn't available here.
+            </p>
+          ) : permission === "denied" ? (
+            <p className="text-[12.5px] text-muted-foreground">
+              Blocked by your browser. Enable notifications for this site in your browser's own
+              settings to turn this on.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="browser-notifications-toggle"
+                  checked={browserEnabled}
+                  onCheckedChange={(checked) => handleToggleBrowserNotifications(checked === true)}
+                />
+                <label htmlFor="browser-notifications-toggle" className="text-sm">
+                  Notify me in this browser when a deadline is due soon
+                </label>
+              </div>
+              <p className="text-[12.5px] text-muted-foreground">
+                Uses each business's own reminder lead time (set on the business itself) to decide
+                what counts as "due soon." Real limitation, not a bug: this only fires while
+                Compliance Tracker is actually open in a browser tab — it can't reach you once the
+                tab or browser is closed, unlike a real email.
+              </p>
+            </div>
           )}
         </CardContent>
       </Card>

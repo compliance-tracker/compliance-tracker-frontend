@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { UrgencyBadge } from "@/components/UrgencyBadge";
 import { api } from "@/lib/api";
-import { cn } from "@/lib/utils";
-import { daysUntil, deadlineLabel, urgencyClasses, urgencyLabel } from "@/lib/urgency";
+import { deadlineLabel } from "@/lib/urgency";
 import type { Business, Deadline } from "@/lib/types";
 
 interface DeadlinesPanelProps {
@@ -62,20 +62,17 @@ export function DeadlinesPanel({ business, refreshKey }: DeadlinesPanelProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {deadlines.map((d, i) => {
-                const days = daysUntil(d.dueDate);
-                return (
-                  <TableRow key={i}>
-                    <TableCell>
-                      <Badge variant="secondary">{deadlineLabel(d)}</Badge>
-                    </TableCell>
-                    <TableCell className="font-mono">{d.dueDate}</TableCell>
-                    <TableCell className="text-right">
-                      <Badge className={cn(urgencyClasses(days))}>{urgencyLabel(days)}</Badge>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {deadlines.map((d, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <Badge variant="secondary">{deadlineLabel(d)}</Badge>
+                  </TableCell>
+                  <TableCell className="font-mono">{d.dueDate}</TableCell>
+                  <TableCell className="text-right">
+                    <UrgencyBadge dueDate={d.dueDate} />
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         )}

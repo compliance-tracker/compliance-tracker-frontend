@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { daysUntil, urgencyClasses, urgencyLabel } from "./urgency";
+import { daysUntil, deadlineLabel, urgencyClasses, urgencyLabel } from "./urgency";
 
 // daysUntil() parses its dueDate string as UTC midnight (new Date("2026-07-27") does that),
 // then normalizes both it and "now" to *local* midnight before comparing. That combination is
@@ -84,5 +84,21 @@ describe("urgencyLabel", () => {
 
   it("says 'Xd overdue' for a past date, without a leading minus sign", () => {
     expect(urgencyLabel(-7)).toBe("7d overdue");
+  });
+});
+
+describe("deadlineLabel (issue #77 / #26)", () => {
+  it("uses the fixed label for a built-in obligation type", () => {
+    expect(deadlineLabel({ obligationType: "GST_F5" })).toBe("GST F5 Filing");
+  });
+
+  it("uses the deadline's own customName for a CUSTOM obligation, not a generic label", () => {
+    expect(deadlineLabel({ obligationType: "CUSTOM", customName: "Renew business insurance" })).toBe(
+      "Renew business insurance",
+    );
+  });
+
+  it("falls back to a generic label if a CUSTOM deadline somehow has no customName", () => {
+    expect(deadlineLabel({ obligationType: "CUSTOM" })).toBe("Custom obligation");
   });
 });

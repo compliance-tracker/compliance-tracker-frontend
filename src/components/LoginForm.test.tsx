@@ -187,6 +187,42 @@ describe("LoginForm", () => {
     expect(onAuthenticated).not.toHaveBeenCalled();
   });
 
+  it("offers a way to resend the verification email right on the login failure, not just after registering", async () => {
+    // Found live, not from a spec: someone who closes the post-registration "check your email"
+    // screen (or comes back to log in later, having lost that email) previously had a real 403
+    // error message and no way at all to get a fresh verification email short of re-registering,
+    // which just 409s on an already-existing account.
+    vi.mocked(api.login).mockRejectedValue(
+      new ApiRequestError("Please verify your email before logging in.", "FORBIDDEN"),
+    );
+    vi.mocked(api.resendVerification).mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    renderLoginForm({ onAuthenticated: vi.fn() });
+
+    await user.type(screen.getByLabelText("Email"), "stuck@example.com");
+    await user.type(screen.getByLabelText("Password"), "correct-password");
+    await user.click(submitButton());
+    await screen.findByText("Please verify your email before logging in.");
+
+    await user.click(screen.getByRole("button", { name: "Resend verification email" }));
+
+    expect(api.resendVerification).toHaveBeenCalledWith("stuck@example.com");
+    expect(await screen.findByText(/another email is on its way/)).toBeInTheDocument();
+  });
+
+  it("does not offer a resend button for a plain wrong-password failure (401), only an unverified-account one (403)", async () => {
+    vi.mocked(api.login).mockRejectedValue(new ApiRequestError("Incorrect email or password.", "UNAUTHORIZED"));
+    const user = userEvent.setup();
+    renderLoginForm({ onAuthenticated: vi.fn() });
+
+    await user.type(screen.getByLabelText("Email"), "owner@example.com");
+    await user.type(screen.getByLabelText("Password"), "wrong-password");
+    await user.click(submitButton());
+
+    await screen.findByText("Incorrect email or password.");
+    expect(screen.queryByRole("button", { name: "Resend verification email" })).not.toBeInTheDocument();
+  });
+
   it("shows the backend's real message on a failed registration (issue #52)", async () => {
     // Proves the specific, real backend message reaches the user - not the old single
     // hardcoded "that email may already be taken" guess, which used to show even for an

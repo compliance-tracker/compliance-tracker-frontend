@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { AuthShell } from "@/components/AuthShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
+import { FormError } from "@/components/FormError";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api, ApiRequestError } from "@/lib/api";
@@ -47,9 +48,7 @@ export function ResetPasswordPage() {
           </div>
 
           {!token ? (
-            <p className="text-sm text-destructive">
-              This reset link is missing its token. Request a new one from the login page.
-            </p>
+            <FormError>This reset link is missing its token. Request a new one from the login page.</FormError>
           ) : succeeded ? (
             <p className="text-sm text-muted-foreground">
               Password reset. You can now log in with your new password.
@@ -67,7 +66,7 @@ export function ResetPasswordPage() {
                 />
               </div>
 
-              {error && <p className="text-sm text-destructive">{error}</p>}
+              {error && <FormError>{error}</FormError>}
 
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting ? "Resetting..." : "Reset password"}

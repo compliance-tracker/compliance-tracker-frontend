@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Menu, ShieldCheck } from "lucide-react";
 import { Outlet, useLocation } from "react-router-dom";
 import { AmbientBackground, type AmbientTint } from "@/components/AmbientBackground";
+import { BrowserNotificationWatcher } from "@/components/BrowserNotificationWatcher";
 import { NavRail } from "@/components/NavRail";
 import { cn } from "@/lib/utils";
 import type { Business } from "@/lib/types";
@@ -50,6 +51,7 @@ export function Shell({ context }: ShellProps) {
   return (
     <div className="relative min-h-screen bg-background lg:grid lg:grid-cols-[220px_1fr]">
       <AmbientBackground tint={tintForPath(pathname)} />
+      <BrowserNotificationWatcher businesses={context.businesses} />
 
       {/* Mobile topbar - the nav rail's own brand mark, shown here instead since the rail itself
           is off-canvas by default below lg. */}
@@ -91,7 +93,10 @@ export function Shell({ context }: ShellProps) {
 
       <main className="relative z-10 max-w-[1080px] space-y-4 p-8">
         {context.error && (
-          <p className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <p
+            role="alert"
+            className="rounded-md border border-destructive/50 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          >
             {context.error}
           </p>
         )}

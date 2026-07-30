@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FormError } from "@/components/FormError";
+import { UrgencyBadge } from "@/components/UrgencyBadge";
 import {
   Dialog,
   DialogContent,
@@ -17,8 +18,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api, ApiRequestError } from "@/lib/api";
-import { cn } from "@/lib/utils";
-import { daysUntil, urgencyClasses, urgencyLabel } from "@/lib/urgency";
 import type { Business, CustomObligation, NewCustomObligation } from "@/lib/types";
 
 interface CustomObligationsPanelProps {
@@ -200,7 +199,7 @@ export function CustomObligationsPanel({ business, onCustomObligationsChanged }:
                 </DialogDescription>
               </DialogHeader>
               <ObligationFormFields form={addForm} onChange={setAddForm} idPrefix="add" />
-              {addError && <p className="px-1 pb-1 text-sm text-destructive">{addError}</p>}
+              {addError && <FormError className="px-1 pb-1">{addError}</FormError>}
               <DialogFooter>
                 <Button type="submit" disabled={addSubmitting}>
                   {addSubmitting ? "Adding..." : "Add obligation"}
@@ -211,7 +210,7 @@ export function CustomObligationsPanel({ business, onCustomObligationsChanged }:
         </Dialog>
       </CardHeader>
       <CardContent className="space-y-3">
-        {listError && <p className="text-sm text-destructive">{listError}</p>}
+        {listError && <FormError>{listError}</FormError>}
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading...</p>
         ) : obligations.length === 0 ? (
@@ -230,43 +229,40 @@ export function CustomObligationsPanel({ business, onCustomObligationsChanged }:
               </TableRow>
             </TableHeader>
             <TableBody>
-              {obligations.map((o) => {
-                const days = daysUntil(o.dueDate);
-                return (
-                  <TableRow key={o.id}>
-                    <TableCell className="font-medium">{o.name}</TableCell>
-                    <TableCell className="font-mono">{o.dueDate}</TableCell>
-                    <TableCell className="text-muted-foreground">{recurrenceLabel(o)}</TableCell>
-                    <TableCell>
-                      <Badge className={cn(urgencyClasses(days))}>{urgencyLabel(days)}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          size="icon-sm"
-                          variant="outline"
-                          onClick={() => {
-                            setEditForm(formStateFor(o));
-                            setEditError(null);
-                            setEditing(o);
-                          }}
-                          aria-label={`Edit ${o.name}`}
-                        >
-                          <Pencil />
-                        </Button>
-                        <Button
-                          size="icon-sm"
-                          variant="destructive"
-                          onClick={() => setPendingDelete(o)}
-                          aria-label={`Remove ${o.name}`}
-                        >
-                          <Trash2 />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {obligations.map((o) => (
+                <TableRow key={o.id}>
+                  <TableCell className="font-medium">{o.name}</TableCell>
+                  <TableCell className="font-mono">{o.dueDate}</TableCell>
+                  <TableCell className="text-muted-foreground">{recurrenceLabel(o)}</TableCell>
+                  <TableCell>
+                    <UrgencyBadge dueDate={o.dueDate} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        size="icon-sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditForm(formStateFor(o));
+                          setEditError(null);
+                          setEditing(o);
+                        }}
+                        aria-label={`Edit ${o.name}`}
+                      >
+                        <Pencil />
+                      </Button>
+                      <Button
+                        size="icon-sm"
+                        variant="destructive"
+                        onClick={() => setPendingDelete(o)}
+                        aria-label={`Remove ${o.name}`}
+                      >
+                        <Trash2 />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         )}
@@ -283,7 +279,7 @@ export function CustomObligationsPanel({ business, onCustomObligationsChanged }:
               </DialogDescription>
             </DialogHeader>
             <ObligationFormFields form={editForm} onChange={setEditForm} idPrefix="edit" />
-            {editError && <p className="px-1 pb-1 text-sm text-destructive">{editError}</p>}
+            {editError && <FormError className="px-1 pb-1">{editError}</FormError>}
             <DialogFooter>
               <Button type="submit" disabled={editSubmitting}>
                 {editSubmitting ? "Saving..." : "Save changes"}

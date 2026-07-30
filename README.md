@@ -100,9 +100,10 @@ check, not a replacement for it.
   to 14, 1-90 — and an optional incorporation date, used to validate a first financial year
   doesn't run more than 18 months past incorporation), `BusinessDetailPage` (`DeadlinesPanel` +
   `WorkPassesPanel` for one business — deadlines colored by urgency: red ≤30 days, amber ≤90 days,
-  neutral further out; work passes drive the Employment Pass renewal deadlines, same urgency-badge
-  convention, shared logic in `src/lib/urgency.ts`; removing a work pass requires confirming
-  first), `CustomObligationsPanel` (a business's own user-defined obligations beyond ACRA/GST/work
+  neutral further out; work passes drive the Employment Pass renewal deadlines, same shared
+  `UrgencyBadge` (color + an `AlertTriangle`/`Clock`/`CalendarCheck` icon per tier, not color
+  alone — issue #26) everywhere a deadline/expiry is shown, backed by `src/lib/urgency.ts`;
+  removing a work pass requires confirming first), `CustomObligationsPanel` (a business's own user-defined obligations beyond ACRA/GST/work
   passes — a one-off date, or repeats every N months; add/edit/delete, same
   confirm-before-removing pattern as work passes), `EditBusinessPage` (a full page — the old `EditBusinessDialog` modal's replacement —
   plus a danger-zone delete reusing `DeleteBusinessDialog`'s confirmation), `AccountPage`
@@ -116,7 +117,12 @@ check, not a replacement for it.
   `POST /api/auth/verify-email` on mount using the URL's `?token=`), `NotificationsPage`
   (read-only — which `NotificationSender` channel is active and, if email, its from-address;
   app-level server config, not a per-account setting, and deliberately no "recently sent" history
-  table since no backend endpoint exists for that — issue #73).
+  table since no backend endpoint exists for that — issue #73; plus a per-account "Notify me in
+  this browser" toggle, issue #34), `BrowserNotificationWatcher` (rendered once in `Shell`, no
+  visible UI — polls every business's deadlines and fires a real browser `Notification` for one
+  newly within that business's own reminder lead time, deduped via `localStorage`; a plain Web
+  Notification, not the full Push API, so it only ever fires while the app is actually open in a
+  tab, not a true background push).
 - `src/components/ui/` — shadcn/ui primitives (owned code, not an npm dependency — copied in
   via the shadcn CLI, edit freely).
 - `src/components/ErrorBoundary.tsx` — top-level React error boundary, wrapped around `<App />`

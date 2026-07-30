@@ -387,6 +387,59 @@ one-off and a recurring (every-3-months) custom obligation, confirmed both actua
 `DeadlinesPanel` under their own real names, edited one, and confirmed the remove-confirmation
 dialog's Cancel/"Yes, remove" both behave correctly — zero console errors throughout.
 
-Open (not started): #7 (deploy — depends on backend #5).
+**#26 (accessibility pass) is done.** Read the codebase first rather than assuming what needed
+fixing — icon-only buttons already all had `aria-label`s, lucide-react already auto-applies
+`aria-hidden="true"` to purely decorative icons, and shadcn's `button.tsx`/`badge.tsx` already
+ship `focus-visible` ring styling everywhere. Three real, concrete gaps found instead: (1) the
+Calendar page's month-grid day-dots were a genuine color-only violation — no text/shape difference
+at all, unlike every urgency *badge* elsewhere (which already had text) — fixed with
+shape-differentiated dots (`DOT_SHAPE_CLASSES`: filled circle / rotated square / hollow ring) plus
+a real `aria-label` per day cell summarizing its deadlines in words; (2) urgency badges gained a
+per-tier icon on top of their existing text (`AlertTriangle`/`Clock`/`CalendarCheck`), extracted
+into a shared `UrgencyBadge` component now used by all four places that used to build the same
+badge inline (`DeadlinesPanel`, `WorkPassesPanel`, `CustomObligationsPanel`, `CalendarPage`); (3) a
+real ARIA-announcement gap across all 11 form-error `<p>` sites app-wide — none had `role="alert"`,
+so a screen reader user only found out about a validation error by manually navigating to it —
+fixed via a shared `FormError` component (`role="alert"`). Keyboard-nav review was mostly a
+verification pass (every control is already a real button/link/input, Radix handles Dialog/Select/
+Checkbox focus internally) — confirmed live via keyboard-only Playwright that Tab/Enter completes
+registration end to end with a real visible focus indicator throughout, nothing needed fixing
+there. New `UrgencyBadge.test.tsx`/`FormError.test.tsx`, plus `deadlineLabel` cases added to
+`urgency.test.ts`. Verified live via Playwright against the real backend: the keyboard-only flow,
+and a second script confirming the calendar day-cell `aria-label`/shape markup actually renders.
+
+**#81 (resend-verification was a dead end outside the registration screen) is done** — found live
+while checking on stuck unverified accounts: the "Resend verification email" button only ever
+existed on the post-registration "check your email" screen; closing that screen (or coming back
+to log in later, having lost the original email) left a real 403 message with no recovery path,
+since re-registering the same email just 409s. Fixed by showing the same resend button directly on
+the login form whenever a login attempt fails with the `FORBIDDEN` code specifically (not the
+plain wrong-credentials `UNAUTHORIZED` case) — cleared on switching modes or editing the email so
+a stale offer doesn't linger. New `LoginForm.test.tsx` cases (resend appears and works for a 403,
+does not appear for a 401), verified live end to end against the real backend: registered,
+deliberately never verified, hit the real 403 on a later login attempt, used the new resend
+button, verified with the fresh token, and confirmed login then genuinely succeeds.
+
+**#34 (browser push notifications, an interim reminder channel) is done.** Discussed scope with
+the user first — the issue's own "needing nothing but the user's browser permission" phrasing
+matches the plain Web Notification API (fires only while the app tab is open, no backend changes)
+rather than the full Push API (works even with the browser closed, but needs a service worker,
+VAPID keys, and a new backend endpoint — a much bigger feature than asked for) — and where
+permission gets requested (an explicit toggle on the Notifications page, not an auto-prompt most
+browsers already discourage). New `browserNotifications.ts` (permission/preference wrapper +
+localStorage dedup, keyed the same composite way backend #59's own dedupe already is), a shared
+`useAllDeadlines` hook extracted from `CalendarPage`'s own inline fetch-and-merge logic, and
+`BrowserNotificationWatcher` (mounted once in `Shell`, checks every 15 minutes against each
+business's own `leadTimeDays` — the same threshold the backend's own reminder pipeline already
+uses, not a separately hardcoded number). Found and fixed a real gap in the committed E2E suite
+while verifying live — the watcher now fetches deadlines globally, not just on Calendar, which
+needed a new mock added to a business-list test that hadn't needed one before. Verified live
+against the real backend: granted real browser permission via Playwright, created a business with
+a deadline due today, confirmed a real `Notification` fires with the right title/body, navigated
+elsewhere to prove it isn't page-scoped, then reloaded and confirmed the same deadline doesn't
+notify twice (dedup surviving a real reload, not just a React re-render).
+
+Open (not started): #7 (deploy — depends on backend #5). No open medium/high-urgency issues
+remain on either repo as of this session.
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.
