@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { auth } from "@/lib/auth";
-import type { ShellContext } from "@/components/Shell";
+import type { ShellContext } from "@/components/shell/Shell";
 
 // The Account page (issue #67) - registered email (read-only, decoded from the JWT already
 // held in localStorage rather than a new "get current user" API call), a disabled "Change

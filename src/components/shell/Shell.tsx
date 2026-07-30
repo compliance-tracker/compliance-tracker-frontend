@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Menu, ShieldCheck } from "lucide-react";
 import { Outlet, useLocation } from "react-router-dom";
-import { AmbientBackground, type AmbientTint } from "@/components/AmbientBackground";
-import { BrowserNotificationWatcher } from "@/components/BrowserNotificationWatcher";
-import { NavRail } from "@/components/NavRail";
+import { AmbientBackground, type AmbientTint } from "@/components/shell/AmbientBackground";
+import { BrowserNotificationWatcher } from "@/components/notifications/BrowserNotificationWatcher";
+import { NavRail } from "@/components/shell/NavRail";
 import { cn } from "@/lib/utils";
 import type { Business } from "@/lib/types";
 

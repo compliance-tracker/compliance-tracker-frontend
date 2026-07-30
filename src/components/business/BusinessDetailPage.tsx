@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { CustomObligationsPanel } from "@/components/CustomObligationsPanel";
-import { DeadlinesPanel } from "@/components/DeadlinesPanel";
-import { WorkPassesPanel } from "@/components/WorkPassesPanel";
-import type { ShellContext } from "@/components/Shell";
+import { CustomObligationsPanel } from "@/components/business/CustomObligationsPanel";
+import { DeadlinesPanel } from "@/components/business/DeadlinesPanel";
+import { WorkPassesPanel } from "@/components/business/WorkPassesPanel";
+import type { ShellContext } from "@/components/shell/Shell";
 
 // The "Overview" page reached from the nav rail's "Selected business" section (issue #61) - shows
 // this business's deadlines above its work-passes table. The redesigned IA (see
