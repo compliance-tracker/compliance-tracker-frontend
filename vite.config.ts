@@ -19,5 +19,9 @@ export default defineConfig({
     // type declarations added to it just to keep test files compiling.
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
+    // e2e/ (issue #30) uses @playwright/test's own test()/expect(), which Vitest's runner
+    // doesn't understand - excluded here so `npm test` never tries to execute them itself;
+    // Playwright's own config (testDir: './e2e') is what actually runs them.
+    exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**'],
   },
 })

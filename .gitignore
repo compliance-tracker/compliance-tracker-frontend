@@ -14,6 +14,12 @@ dist-ssr
 .env
 NOTES.md
 
+# Playwright E2E suite (issue #30) - generated per-run, never committed.
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

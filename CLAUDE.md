@@ -344,6 +344,27 @@ dashboard → attempt to log in before verifying → real 403 message shown → 
 verification token from Postgres → verify for real → log in again → succeeds, lands in the
 dashboard. Zero console errors.
 
+**#30 (committed E2E test suite in CI) is done.** Every "live verification" this session (and every
+prior one) was an ad-hoc Playwright script in the session scratchpad — real, valuable, but none
+of it preserved as an actual regression check. Discussed the real architecture decision with the
+user first rather than assuming: a true end-to-end suite would need CI to check out the *backend*
+repo, build it with Maven, and spin up Postgres/LocalStack service containers — a much heavier,
+cross-repo job. Chose (with the user) the lighter, self-contained alternative instead: Playwright
+drives the real built frontend (`npm run build` + `vite preview`) in a real browser, but every
+`**/api/**` call is intercepted and mocked at the network layer (`e2e/mocks.ts`) rather than
+hitting a live backend — catches frontend regressions (rendering, routing, client-side logic),
+not real backend-integration bugs (that class of bug — the CORS gap, the `isApiError` leak — is
+exactly what this project's existing per-PR manual live-verification convention already exists to
+catch, and still does; this suite doesn't replace that). Nine tests across three spec files:
+`auth.spec.ts` (register shows check-your-email not the dashboard, login failure/403/success
+message handling), `navigation.spec.ts` (every nav-rail link reaches its page, 404 fallback, the
+Overview/Edit-business disabled→enabled transition), `businesses.spec.ts` (adding a business shows
+up without a refetch, client-side search filtering). Added as a **separate** `e2e` CI job, not
+folded into the required `build-and-typecheck` check, so a flaky/slow E2E run can't block merging
+on its own — branch protection itself wasn't changed. `vite.config.ts`'s Vitest config now
+excludes `e2e/**` so the two suites (Vitest's own `*.test.tsx` component tests vs. Playwright's
+`*.spec.ts` browser tests) never try to run each other's files.
+
 Open (not started): #7 (deploy — depends on backend #5).
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.
