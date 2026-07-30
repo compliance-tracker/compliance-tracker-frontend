@@ -408,6 +408,18 @@ there. New `UrgencyBadge.test.tsx`/`FormError.test.tsx`, plus `deadlineLabel` ca
 `urgency.test.ts`. Verified live via Playwright against the real backend: the keyboard-only flow,
 and a second script confirming the calendar day-cell `aria-label`/shape markup actually renders.
 
+**#81 (resend-verification was a dead end outside the registration screen) is done** — found live
+while checking on stuck unverified accounts: the "Resend verification email" button only ever
+existed on the post-registration "check your email" screen; closing that screen (or coming back
+to log in later, having lost the original email) left a real 403 message with no recovery path,
+since re-registering the same email just 409s. Fixed by showing the same resend button directly on
+the login form whenever a login attempt fails with the `FORBIDDEN` code specifically (not the
+plain wrong-credentials `UNAUTHORIZED` case) — cleared on switching modes or editing the email so
+a stale offer doesn't linger. New `LoginForm.test.tsx` cases (resend appears and works for a 403,
+does not appear for a 401), verified live end to end against the real backend: registered,
+deliberately never verified, hit the real 403 on a later login attempt, used the new resend
+button, verified with the fresh token, and confirmed login then genuinely succeeds.
+
 Open (not started): #7 (deploy — depends on backend #5). #34 (browser push notifications) is the
 one remaining medium-urgency issue.
 
