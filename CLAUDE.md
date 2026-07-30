@@ -420,7 +420,26 @@ does not appear for a 401), verified live end to end against the real backend: r
 deliberately never verified, hit the real 403 on a later login attempt, used the new resend
 button, verified with the fresh token, and confirmed login then genuinely succeeds.
 
-Open (not started): #7 (deploy — depends on backend #5). #34 (browser push notifications) is the
-one remaining medium-urgency issue.
+**#34 (browser push notifications, an interim reminder channel) is done.** Discussed scope with
+the user first — the issue's own "needing nothing but the user's browser permission" phrasing
+matches the plain Web Notification API (fires only while the app tab is open, no backend changes)
+rather than the full Push API (works even with the browser closed, but needs a service worker,
+VAPID keys, and a new backend endpoint — a much bigger feature than asked for) — and where
+permission gets requested (an explicit toggle on the Notifications page, not an auto-prompt most
+browsers already discourage). New `browserNotifications.ts` (permission/preference wrapper +
+localStorage dedup, keyed the same composite way backend #59's own dedupe already is), a shared
+`useAllDeadlines` hook extracted from `CalendarPage`'s own inline fetch-and-merge logic, and
+`BrowserNotificationWatcher` (mounted once in `Shell`, checks every 15 minutes against each
+business's own `leadTimeDays` — the same threshold the backend's own reminder pipeline already
+uses, not a separately hardcoded number). Found and fixed a real gap in the committed E2E suite
+while verifying live — the watcher now fetches deadlines globally, not just on Calendar, which
+needed a new mock added to a business-list test that hadn't needed one before. Verified live
+against the real backend: granted real browser permission via Playwright, created a business with
+a deadline due today, confirmed a real `Notification` fires with the right title/body, navigated
+elsewhere to prove it isn't page-scoped, then reloaded and confirmed the same deadline doesn't
+notify twice (dedup surviving a real reload, not just a React re-render).
+
+Open (not started): #7 (deploy — depends on backend #5). No open medium/high-urgency issues
+remain on either repo as of this session.
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.

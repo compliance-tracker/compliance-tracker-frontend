@@ -117,7 +117,12 @@ check, not a replacement for it.
   `POST /api/auth/verify-email` on mount using the URL's `?token=`), `NotificationsPage`
   (read-only — which `NotificationSender` channel is active and, if email, its from-address;
   app-level server config, not a per-account setting, and deliberately no "recently sent" history
-  table since no backend endpoint exists for that — issue #73).
+  table since no backend endpoint exists for that — issue #73; plus a per-account "Notify me in
+  this browser" toggle, issue #34), `BrowserNotificationWatcher` (rendered once in `Shell`, no
+  visible UI — polls every business's deadlines and fires a real browser `Notification` for one
+  newly within that business's own reminder lead time, deduped via `localStorage`; a plain Web
+  Notification, not the full Push API, so it only ever fires while the app is actually open in a
+  tab, not a true background push).
 - `src/components/ui/` — shadcn/ui primitives (owned code, not an npm dependency — copied in
   via the shadcn CLI, edit freely).
 - `src/components/ErrorBoundary.tsx` — top-level React error boundary, wrapped around `<App />`
