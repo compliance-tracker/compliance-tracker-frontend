@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { CustomObligationsPanel } from "@/components/CustomObligationsPanel";
 import { DeadlinesPanel } from "@/components/DeadlinesPanel";
 import { WorkPassesPanel } from "@/components/WorkPassesPanel";
 import type { ShellContext } from "@/components/Shell";
@@ -39,12 +40,16 @@ export function BusinessDetailPage() {
       <div className="border-b border-border pb-4">
         <h1 className="font-serif text-2xl font-semibold tracking-tight">{business.name}</h1>
         <p className="text-sm text-muted-foreground">
-          Employment passes and upcoming compliance deadlines for this business.
+          Employment passes, custom obligations, and upcoming compliance deadlines for this business.
         </p>
       </div>
 
       <DeadlinesPanel business={business} refreshKey={deadlinesRefreshKey} />
       <WorkPassesPanel business={business} onWorkPassesChanged={() => setDeadlinesRefreshKey((k) => k + 1)} />
+      <CustomObligationsPanel
+        business={business}
+        onCustomObligationsChanged={() => setDeadlinesRefreshKey((k) => k + 1)}
+      />
     </div>
   );
 }

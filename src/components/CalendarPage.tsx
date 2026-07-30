@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { OBLIGATION_LABELS, daysUntil, urgencyClasses, urgencyLabel, urgencyTier } from "@/lib/urgency";
+import { daysUntil, deadlineLabel, urgencyClasses, urgencyLabel, urgencyTier } from "@/lib/urgency";
 import type { ShellContext } from "@/components/Shell";
 import type { Business, Deadline } from "@/lib/types";
 
@@ -125,7 +125,7 @@ export function CalendarPage() {
                       <div className="min-w-0 flex-1">
                         <div className="text-[13.5px] font-semibold">{business.name}</div>
                         <div className="mt-px text-[12.5px] text-muted-foreground">
-                          {OBLIGATION_LABELS[deadline.obligationType] ?? deadline.obligationType}
+                          {deadlineLabel(deadline)}
                         </div>
                       </div>
                       <Badge className={cn("self-start", urgencyClasses(days))}>{urgencyLabel(days)}</Badge>

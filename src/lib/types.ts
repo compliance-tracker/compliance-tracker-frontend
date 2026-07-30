@@ -22,12 +22,18 @@ export interface ApiError {
 
 export type NewBusiness = Omit<Business, "id">;
 
-// Mirrors com.chrainx.compliance_tracker.rules.Deadline
-export type ObligationType = "ACRA_ANNUAL_RETURN" | "GST_F5" | "WORK_PASS_RENEWAL";
+// Mirrors com.chrainx.compliance_tracker.rules.Deadline. "CUSTOM" added for backend issue #59.
+export type ObligationType = "ACRA_ANNUAL_RETURN" | "GST_F5" | "WORK_PASS_RENEWAL" | "CUSTOM";
 
+// customName/customObligationId are only ever set together, only for obligationType "CUSTOM" -
+// both null/absent for the 3 built-in types, which already have a fixed label (OBLIGATION_LABELS
+// in urgency.ts) and don't need per-deadline identification the way two different custom
+// obligations sharing a due date do (backend's own dedupe reasoning, Deadline.java).
 export interface Deadline {
   obligationType: ObligationType;
   dueDate: string;
+  customName?: string;
+  customObligationId?: number;
 }
 
 // Mirrors com.chrainx.compliance_tracker.AuthRequest / AuthResponse
@@ -57,6 +63,21 @@ export interface WorkPass {
 }
 
 export type NewWorkPass = Omit<WorkPass, "id">;
+
+// Mirrors com.chrainx.compliance_tracker.business.CustomObligationResponse (backend issue #59) -
+// a business's own user-defined compliance items beyond the 3 built-in ones. dueDate here is the
+// stored anchor, not the live-recomputed next occurrence for a recurring obligation - the actual
+// upcoming date only ever shows up via GET .../deadlines (see Deadline above), same relationship
+// Business.financialYearEnd has to the real ACRA deadline. recurrenceMonths null means a one-off
+// obligation the user re-edits themselves once handled; a number means it recurs every N months.
+export interface CustomObligation {
+  id: number;
+  name: string;
+  dueDate: string;
+  recurrenceMonths: number | null;
+}
+
+export type NewCustomObligation = Omit<CustomObligation, "id">;
 
 // Mirrors com.chrainx.compliance_tracker.business.PageResponse (backend issue #49) - both
 // GET /api/businesses and GET /api/businesses/{id}/work-passes now return this envelope instead

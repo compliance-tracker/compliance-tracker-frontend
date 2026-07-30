@@ -22,6 +22,19 @@ if (typeof Element.prototype.scrollIntoView === "undefined") {
   Element.prototype.scrollIntoView = () => {};
 }
 
+// jsdom also doesn't implement ResizeObserver - Radix's Checkbox (react-use-size) calls it
+// internally to track its own indicator size. Same class of gap as the pointer-capture methods
+// above, first hit building the custom-obligations UI (issue #77, frontend), the first place a
+// Radix Checkbox is exercised via userEvent inside a real render (EditBusinessPage's own
+// Checkbox test never opens a controlled dialog the same way). A no-op class, same accepted fix.
+if (typeof globalThis.ResizeObserver === "undefined") {
+  globalThis.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
+
 // React Testing Library normally auto-registers this via a global afterEach, but that
 // detection relies on Vitest's `globals` mode being on - deliberately off here (see
 // vite.config.ts) so test files import describe/it/expect explicitly instead. Without this,

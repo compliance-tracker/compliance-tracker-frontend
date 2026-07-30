@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
-import { OBLIGATION_LABELS, daysUntil, urgencyClasses, urgencyLabel } from "@/lib/urgency";
+import { daysUntil, deadlineLabel, urgencyClasses, urgencyLabel } from "@/lib/urgency";
 import type { Business, Deadline } from "@/lib/types";
 
 interface DeadlinesPanelProps {
@@ -67,9 +67,7 @@ export function DeadlinesPanel({ business, refreshKey }: DeadlinesPanelProps) {
                 return (
                   <TableRow key={i}>
                     <TableCell>
-                      <Badge variant="secondary">
-                        {OBLIGATION_LABELS[d.obligationType] ?? d.obligationType}
-                      </Badge>
+                      <Badge variant="secondary">{deadlineLabel(d)}</Badge>
                     </TableCell>
                     <TableCell className="font-mono">{d.dueDate}</TableCell>
                     <TableCell className="text-right">
