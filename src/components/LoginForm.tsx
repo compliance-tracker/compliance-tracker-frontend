@@ -48,11 +48,20 @@ export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
   const [registrationMessage, setRegistrationMessage] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
   const [resent, setResent] = useState(false);
+  // Set when a *login* attempt (not registration) fails specifically because the account isn't
+  // verified yet (backend's 403 FORBIDDEN, distinct from the 401 "wrong credentials" case) -
+  // without this, someone who closes the post-registration "check your email" screen (or comes
+  // back to log in days later, on a different device, after losing that email) had a real 403
+  // message but zero way to trigger a fresh verification email short of re-registering, which
+  // just 409s on an already-existing account. Found live, not from a spec - the registration
+  // flow's own resend button only ever covers the moment right after registering.
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    setUnverifiedEmail(null);
 
     try {
       if (mode === "login") {
@@ -75,6 +84,10 @@ export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
             ? "Incorrect email or password."
             : "Could not register. Is the backend running?"
       );
+      if (mode === "login" && err instanceof ApiRequestError && err.code === "FORBIDDEN") {
+        setUnverifiedEmail(email);
+        setResent(false);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -161,6 +174,7 @@ export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
                     onClick={() => {
                       setMode(m);
                       setError(null);
+                      setUnverifiedEmail(null);
                     }}
                   >
                     {m === "login" ? "Log in" : "Sign up"}
@@ -184,7 +198,10 @@ export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
                     id="email"
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setUnverifiedEmail(null);
+                    }}
                     required
                   />
                 </div>
@@ -201,6 +218,23 @@ export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
                 </div>
 
                 {error && <FormError>{error}</FormError>}
+
+                {unverifiedEmail &&
+                  (resent ? (
+                    <p role="status" className="text-sm text-muted-foreground">
+                      If that account still needs verifying, another email is on its way.
+                    </p>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={handleResend}
+                      disabled={resending}
+                    >
+                      {resending ? "Sending..." : "Resend verification email"}
+                    </Button>
+                  ))}
 
                 <Button type="submit" className="w-full" disabled={submitting}>
                   {submitting ? "Please wait..." : mode === "login" ? "Log in" : "Register"}
