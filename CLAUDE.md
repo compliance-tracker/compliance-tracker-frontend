@@ -484,6 +484,20 @@ placeholders render and closely match the eventual layout (via screenshots) on B
 business detail page, Calendar, and Notifications, and that the skeleton count drops to zero once
 each fetch resolves.
 
+**#27 (CSV export of businesses/deadlines) is done.** No library dependency — `src/lib/csv.ts`
+(`toCsv`/`downloadCsv`, real RFC 4180 escaping, no dependency needed for something this small).
+Shipped both options the issue named, not just one, since they share the same underlying
+functions: `BusinessList` exports whatever's currently filtered/sorted (not the full unfiltered
+list), `DeadlinesPanel` exports one business's own deadlines with a filename identifying which
+business it's for. New `csv.test.ts` (escaping rules + the real download DOM mechanics) and new
+`DeadlinesPanel.test.tsx` (didn't exist before). Verified live via Playwright against the real
+backend using `page.waitForEvent("download")` — read both actual downloaded files' disk content
+afterward and confirmed the real rows/headers/filenames, not just that a download fired. Along
+the way, found the local Docker containers had silently exited ~18 hours earlier (machine
+sleep, not this session) — restarted them, confirmed the backend's connection pool reconnected
+on its own, and recreated the LocalStack SQS queues (their state doesn't survive a restart, an
+already-known gotcha).
+
 Open (not started): #7 (deploy — depends on backend #5). No open medium/high-urgency issues
 remain on either repo as of this session.
 

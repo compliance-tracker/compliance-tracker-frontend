@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowDownAZ, ArrowUpAZ, Search } from "lucide-react";
+import { ArrowDownAZ, ArrowUpAZ, Download, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableRowsSkeleton } from "@/components/TableRowsSkeleton";
+import { downloadCsv, toCsv } from "@/lib/csv";
 import type { Business } from "@/lib/types";
 
 interface BusinessListProps {
@@ -49,10 +50,29 @@ export function BusinessList({ businesses, loading = false }: BusinessListProps)
     return sorted;
   }, [businesses, query, gstFilter, sortField, sortAscending]);
 
+  // Issue #27 - exports whatever's currently visible (respecting the search/GST filter above),
+  // not the full unfiltered list - if you've filtered down to "GST-registered businesses only",
+  // that's almost certainly what you actually want in the file, not everything regardless of
+  // what's on screen.
+  function handleExport() {
+    const csv = toCsv(visibleBusinesses, [
+      { header: "Name", value: (b) => b.name },
+      { header: "Financial Year End", value: (b) => b.financialYearEnd },
+      { header: "GST Registered", value: (b) => (b.gstRegistered ? "Yes" : "No") },
+      { header: "Reminder Lead (days)", value: (b) => b.leadTimeDays },
+    ]);
+    downloadCsv("businesses.csv", csv);
+  }
+
   return (
     <Card className="shadow-sm">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle>Businesses</CardTitle>
+        {businesses.length > 0 && (
+          <Button variant="outline" size="sm" onClick={handleExport}>
+            <Download /> Export CSV
+          </Button>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {loading ? (

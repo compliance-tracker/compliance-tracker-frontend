@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
+import { Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableRowsSkeleton } from "@/components/TableRowsSkeleton";
 import { UrgencyBadge } from "@/components/UrgencyBadge";
 import { api } from "@/lib/api";
+import { downloadCsv, toCsv } from "@/lib/csv";
 import { deadlineLabel } from "@/lib/urgency";
 import type { Business, Deadline } from "@/lib/types";
 
@@ -43,10 +46,30 @@ export function DeadlinesPanel({ business, refreshKey }: DeadlinesPanelProps) {
     );
   }
 
+  // Issue #27 - handing this to an accountant/company secretary is the whole point of the
+  // feature, so the filename identifies which business it's for rather than a generic
+  // "deadlines.csv" that's ambiguous the moment you have more than one export sitting around.
+  // Non-alphanumeric characters replaced with "-" since a business name can contain slashes,
+  // punctuation, etc. that aren't safe in a filename.
+  function handleExport() {
+    if (!business) return;
+    const csv = toCsv(deadlines, [
+      { header: "Obligation", value: (d) => deadlineLabel(d) },
+      { header: "Due Date", value: (d) => d.dueDate },
+    ]);
+    const safeName = business.name.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+    downloadCsv(`${safeName}-deadlines.csv`, csv);
+  }
+
   return (
     <Card className="shadow-sm">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle>{business.name} — upcoming deadlines</CardTitle>
+        {deadlines.length > 0 && (
+          <Button variant="outline" size="sm" onClick={handleExport}>
+            <Download /> Export CSV
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
         {!loading && deadlines.length === 0 ? (
