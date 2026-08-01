@@ -3,7 +3,9 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { BusinessList } from "./BusinessList";
+import { api, ApiRequestError } from "@/lib/api";
 import { downloadCsv } from "@/lib/csv";
+import { toast } from "sonner";
 import type { Business } from "@/lib/types";
 
 // Real toCsv (proves the actual CSV content), mocked downloadCsv (no real file/DOM download
@@ -13,27 +15,38 @@ vi.mock("@/lib/csv", async (importOriginal) => {
   return { ...actual, downloadCsv: vi.fn() };
 });
 
+vi.mock("@/lib/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/api")>();
+  return { ...actual, api: { deleteBusiness: vi.fn() } };
+});
+
+vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
+
 const businesses: Business[] = [
   { id: 1, name: "Zebra Trading Pte Ltd", financialYearEnd: "2026-12-31", gstRegistered: true, leadTimeDays: 14, incorporationDate: null },
   { id: 2, name: "Acme Cafe Pte Ltd", financialYearEnd: "2026-03-31", gstRegistered: false, leadTimeDays: 30, incorporationDate: null },
   { id: 3, name: "Mango Consulting Pte Ltd", financialYearEnd: "2026-09-30", gstRegistered: true, leadTimeDays: 14, incorporationDate: "2026-01-15" },
 ];
 
-function renderList(list: Business[] = businesses) {
+function renderList(list: Business[] = businesses, onDeleted = vi.fn()) {
   return render(
     <MemoryRouter>
-      <BusinessList businesses={list} />
+      <BusinessList businesses={list} onDeleted={onDeleted} />
     </MemoryRouter>,
   );
 }
 
 function rowNames() {
   const rows = screen.getAllByRole("row").slice(1); // drop the header row
-  return rows.map((row) => within(row).getAllByRole("cell")[0].textContent);
+  // Cell 0 is the selection checkbox (issue #35), cell 1 is the name.
+  return rows.map((row) => within(row).getAllByRole("cell")[1].textContent);
 }
 
 beforeEach(() => {
   vi.mocked(downloadCsv).mockReset();
+  vi.mocked(api.deleteBusiness).mockReset();
+  vi.mocked(toast.success).mockReset();
+  vi.mocked(toast.error).mockReset();
 });
 
 afterEach(() => {
@@ -133,5 +146,101 @@ describe("BusinessList", () => {
 
     // 2026-03-31 (Acme) < 2026-09-30 (Mango) < 2026-12-31 (Zebra)
     expect(rowNames()).toEqual(["Acme Cafe Pte Ltd", "Mango Consulting Pte Ltd", "Zebra Trading Pte Ltd"]);
+  });
+});
+
+describe("BusinessList - bulk select and actions (issue #35)", () => {
+  it("shows no bulk action bar until at least one row is selected", () => {
+    renderList();
+    expect(screen.queryByText(/selected$/)).not.toBeInTheDocument();
+  });
+
+  it("selecting one row shows the bulk action bar with the right count", async () => {
+    const user = userEvent.setup();
+    renderList();
+
+    await user.click(screen.getByRole("checkbox", { name: "Select Acme Cafe Pte Ltd" }));
+
+    expect(screen.getByText("1 selected")).toBeInTheDocument();
+  });
+
+  it("select-all selects every currently visible row, respecting the active filter", async () => {
+    const user = userEvent.setup();
+    renderList();
+
+    await user.type(screen.getByPlaceholderText("Search by name..."), "cafe");
+    await user.click(screen.getByRole("checkbox", { name: "Select all businesses" }));
+
+    expect(screen.getByText("1 selected")).toBeInTheDocument();
+  });
+
+  it("exports only the selected rows, not the full list", async () => {
+    const user = userEvent.setup();
+    renderList();
+
+    await user.click(screen.getByRole("checkbox", { name: "Select Mango Consulting Pte Ltd" }));
+    await user.click(screen.getByRole("button", { name: "Export selected" }));
+
+    const csv = vi.mocked(downloadCsv).mock.calls[0][1];
+    expect(csv).toContain("Mango Consulting Pte Ltd");
+    expect(csv).not.toContain("Zebra Trading Pte Ltd");
+    expect(csv).not.toContain("Acme Cafe Pte Ltd");
+  });
+
+  it("does not delete immediately - clicking Delete selected opens a confirmation dialog first", async () => {
+    const user = userEvent.setup();
+    renderList();
+
+    await user.click(screen.getByRole("checkbox", { name: "Select Acme Cafe Pte Ltd" }));
+    await user.click(screen.getByRole("button", { name: "Delete selected" }));
+
+    expect(screen.getByText("Delete 1 businesses?")).toBeInTheDocument();
+    expect(api.deleteBusiness).not.toHaveBeenCalled();
+  });
+
+  it("Cancel on the bulk-delete confirmation does not delete anything", async () => {
+    const user = userEvent.setup();
+    renderList();
+
+    await user.click(screen.getByRole("checkbox", { name: "Select Acme Cafe Pte Ltd" }));
+    await user.click(screen.getByRole("button", { name: "Delete selected" }));
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(api.deleteBusiness).not.toHaveBeenCalled();
+    expect(rowNames()).toContain("Acme Cafe Pte Ltd");
+  });
+
+  it("confirming bulk delete calls the real API for each selected business and reports success", async () => {
+    vi.mocked(api.deleteBusiness).mockResolvedValue(undefined);
+    const onDeleted = vi.fn();
+    const user = userEvent.setup();
+    renderList(businesses, onDeleted);
+
+    await user.click(screen.getByRole("checkbox", { name: "Select Acme Cafe Pte Ltd" }));
+    await user.click(screen.getByRole("checkbox", { name: "Select Mango Consulting Pte Ltd" }));
+    await user.click(screen.getByRole("button", { name: "Delete selected" }));
+    await user.click(screen.getByRole("button", { name: "Yes, delete 2" }));
+
+    expect(api.deleteBusiness).toHaveBeenCalledWith(2);
+    expect(api.deleteBusiness).toHaveBeenCalledWith(3);
+    expect(onDeleted).toHaveBeenCalledWith(2);
+    expect(onDeleted).toHaveBeenCalledWith(3);
+    await vi.waitFor(() => expect(toast.success).toHaveBeenCalledWith("2 businesses deleted"));
+  });
+
+  it("a partial bulk-delete failure reports the real per-item error and a partial-success summary", async () => {
+    vi.mocked(api.deleteBusiness).mockImplementation(async (id: number) => {
+      if (id === 3) throw new ApiRequestError("Could not delete this business.", "BAD_REQUEST");
+    });
+    const user = userEvent.setup();
+    renderList();
+
+    await user.click(screen.getByRole("checkbox", { name: "Select Acme Cafe Pte Ltd" }));
+    await user.click(screen.getByRole("checkbox", { name: "Select Mango Consulting Pte Ltd" }));
+    await user.click(screen.getByRole("button", { name: "Delete selected" }));
+    await user.click(screen.getByRole("button", { name: "Yes, delete 2" }));
+
+    await vi.waitFor(() => expect(toast.error).toHaveBeenCalledWith("Could not delete this business."));
+    await vi.waitFor(() => expect(toast.success).toHaveBeenCalledWith("1 of 2 businesses deleted"));
   });
 });

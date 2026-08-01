@@ -142,7 +142,8 @@ check, not a replacement for it.
     non-blocking; calls the real `POST /api/auth/verify-email` on mount using the URL's `?token=`).
   - `business/` — `BusinessesPage` (stat tiles + `BusinessList`, the list's own "View" link
     navigates to a business's detail page), `BusinessList` (search/filter/sort, all client-side —
-    plus a CSV export of whatever's currently visible, issue #27), `AddBusinessDialog`/
+    plus a CSV export of whatever's currently visible, issue #27, and per-row/select-all bulk
+    checkboxes with an Export selected/Delete selected action bar, issue #35), `AddBusinessDialog`/
     `EditBusinessPage` (name, FYE, GST status, reminder lead time 1-90 days, optional incorporation
     date), `DeleteBusinessDialog`, `BusinessDetailPage` (`DeadlinesPanel` + `WorkPassesPanel` +
     `CustomObligationsPanel` for one business), `WorkPassesPanel`, `CustomObligationsPanel` (a
