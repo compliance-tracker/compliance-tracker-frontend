@@ -67,6 +67,17 @@ check, not a replacement for it.
   quote, or newline), `downloadCsv(filename, content)` triggers a real browser download via a
   `Blob`/object URL. Used by `BusinessList` (exports whatever's currently filtered/sorted) and
   `DeadlinesPanel` (exports one business's deadlines, filename identifying which business).
+- `src/components/PrintHeader.tsx` — print-only header (issue #36), hidden on screen (Tailwind's
+  `print:` variant), shown only inside `window.print()` output: report title, print date, and the
+  "not compliance advice" disclaimer that would otherwise only ever exist on the login page — a
+  physical printout has none of the surrounding app to carry that context. Used by
+  `DeadlinesPanel` (one business's deadlines) and `CalendarPage` (every business's upcoming
+  deadlines, merged). App chrome (nav rail, mobile topbar, ambient background, action buttons, the
+  toast layer) is hidden on print via `print:hidden` in `Shell.tsx`/`sonner.tsx`, and `index.css`
+  forces plain black-on-white regardless of the active theme — a printout isn't a themed surface.
+  `BusinessDetailPage` hides `WorkPassesPanel`/`CustomObligationsPanel` on print too, since only
+  the deadlines list is meant to be a printable document — that scoping lives at the page level,
+  not baked into either panel.
 - `src/components/ui/sonner.tsx` — success toast system (issue #22), a thin wrapper around the
   `sonner` library adapted to read this app's own `theme.ts` instead of the `next-themes` package
   its shadcn registry entry assumes (a Next.js-only dependency this is a plain Vite SPA has no use

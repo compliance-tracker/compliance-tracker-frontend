@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Download } from "lucide-react";
+import { Download, Printer } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PrintHeader } from "@/components/PrintHeader";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableRowsSkeleton } from "@/components/TableRowsSkeleton";
 import { UrgencyBadge } from "@/components/UrgencyBadge";
@@ -62,16 +63,22 @@ export function DeadlinesPanel({ business, refreshKey }: DeadlinesPanelProps) {
   }
 
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0">
+    <Card className="shadow-sm print:border-0 print:shadow-none">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 print:hidden">
         <CardTitle>{business.name} — upcoming deadlines</CardTitle>
         {deadlines.length > 0 && (
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download /> Export CSV
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => window.print()}>
+              <Printer /> Print
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExport}>
+              <Download /> Export CSV
+            </Button>
+          </div>
         )}
       </CardHeader>
       <CardContent>
+        <PrintHeader title={`${business.name} — upcoming deadlines`} />
         {!loading && deadlines.length === 0 ? (
           <p className="text-sm text-muted-foreground">No deadlines computed for this business.</p>
         ) : (
