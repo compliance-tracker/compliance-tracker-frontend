@@ -3,6 +3,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormError } from "@/components/FormError";
+import { TableRowsSkeleton } from "@/components/TableRowsSkeleton";
 import { UrgencyBadge } from "@/components/UrgencyBadge";
 import {
   Dialog,
@@ -165,9 +166,7 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
         {/* Shown here (not just inside the add dialog above) since a delete failure - the
             other thing that sets `error` - happens with that dialog closed. */}
         {error && !dialogOpen && <FormError>{error}</FormError>}
-        {loading ? (
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        ) : workPasses.length === 0 ? (
+        {!loading && workPasses.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No work passes yet — add one to track its renewal deadline.
           </p>
@@ -181,27 +180,31 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
                 <TableHead className="text-right">Remove</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {workPasses.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-medium">{p.employeeName}</TableCell>
-                  <TableCell className="font-mono">{p.expiryDate}</TableCell>
-                  <TableCell>
-                    <UrgencyBadge dueDate={p.expiryDate} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      size="icon-sm"
-                      variant="destructive"
-                      onClick={() => setPendingDelete(p)}
-                      aria-label={`Remove ${p.employeeName}'s work pass`}
-                    >
-                      <Trash2 />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
+            {loading ? (
+              <TableRowsSkeleton columns={4} />
+            ) : (
+              <TableBody>
+                {workPasses.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell className="font-medium">{p.employeeName}</TableCell>
+                    <TableCell className="font-mono">{p.expiryDate}</TableCell>
+                    <TableCell>
+                      <UrgencyBadge dueDate={p.expiryDate} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="icon-sm"
+                        variant="destructive"
+                        onClick={() => setPendingDelete(p)}
+                        aria-label={`Remove ${p.employeeName}'s work pass`}
+                      >
+                        <Trash2 />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            )}
           </Table>
         )}
       </CardContent>

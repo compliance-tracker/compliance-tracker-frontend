@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormError } from "@/components/FormError";
+import { Skeleton } from "@/components/ui/skeleton";
 import * as browserNotifications from "@/lib/browserNotifications";
 import { api } from "@/lib/api";
 import type { NotificationStatus } from "@/lib/types";
@@ -59,7 +60,14 @@ export function NotificationsPage() {
       <Card className="shadow-sm">
         <CardContent>
           {loading ? (
-            <p className="text-sm text-muted-foreground">Loading...</p>
+            <div className="flex items-center gap-3.5 border-b border-border pb-4.5">
+              <Skeleton className="h-10 w-10 shrink-0 rounded-[10px]" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-56" />
+              </div>
+              <Skeleton className="h-5 w-14 rounded-4xl" />
+            </div>
           ) : error ? (
             <FormError>{error}</FormError>
           ) : (

@@ -76,3 +76,24 @@ describe("WorkPassesPanel - remove confirmation (issue #24)", () => {
     expect(api.deleteWorkPass).toHaveBeenCalledWith(business.id, workPass.id);
   });
 });
+
+describe("WorkPassesPanel - loading skeleton (issue #29)", () => {
+  it("shows skeleton table rows while the fetch is in flight, real headers already visible", async () => {
+    // A never-resolving promise keeps the component in its loading state for the whole test -
+    // real behavior is proven by the follow-up test below, which lets the same fetch resolve.
+    vi.mocked(api.getWorkPasses).mockReturnValue(new Promise(() => {}));
+    render(<WorkPassesPanel business={business} />);
+
+    expect(screen.getByText("Employee")).toBeInTheDocument();
+    expect(document.querySelectorAll('[data-slot="skeleton"]').length).toBeGreaterThan(0);
+    expect(screen.queryByText("Jane Doe")).not.toBeInTheDocument();
+  });
+
+  it("replaces the skeleton with real rows once the fetch resolves", async () => {
+    render(<WorkPassesPanel business={business} />);
+
+    await screen.findByText("Jane Doe");
+
+    expect(document.querySelectorAll('[data-slot="skeleton"]').length).toBe(0);
+  });
+});

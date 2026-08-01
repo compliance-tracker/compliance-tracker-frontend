@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormError } from "@/components/FormError";
+import { TableRowsSkeleton } from "@/components/TableRowsSkeleton";
 import { UrgencyBadge } from "@/components/UrgencyBadge";
 import {
   Dialog,
@@ -211,9 +212,7 @@ export function CustomObligationsPanel({ business, onCustomObligationsChanged }:
       </CardHeader>
       <CardContent className="space-y-3">
         {listError && <FormError>{listError}</FormError>}
-        {loading ? (
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        ) : obligations.length === 0 ? (
+        {!loading && obligations.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No custom obligations yet — add one to track something beyond ACRA, GST, and work passes.
           </p>
@@ -228,42 +227,46 @@ export function CustomObligationsPanel({ business, onCustomObligationsChanged }:
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {obligations.map((o) => (
-                <TableRow key={o.id}>
-                  <TableCell className="font-medium">{o.name}</TableCell>
-                  <TableCell className="font-mono">{o.dueDate}</TableCell>
-                  <TableCell className="text-muted-foreground">{recurrenceLabel(o)}</TableCell>
-                  <TableCell>
-                    <UrgencyBadge dueDate={o.dueDate} />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        size="icon-sm"
-                        variant="outline"
-                        onClick={() => {
-                          setEditForm(formStateFor(o));
-                          setEditError(null);
-                          setEditing(o);
-                        }}
-                        aria-label={`Edit ${o.name}`}
-                      >
-                        <Pencil />
-                      </Button>
-                      <Button
-                        size="icon-sm"
-                        variant="destructive"
-                        onClick={() => setPendingDelete(o)}
-                        aria-label={`Remove ${o.name}`}
-                      >
-                        <Trash2 />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
+            {loading ? (
+              <TableRowsSkeleton columns={5} />
+            ) : (
+              <TableBody>
+                {obligations.map((o) => (
+                  <TableRow key={o.id}>
+                    <TableCell className="font-medium">{o.name}</TableCell>
+                    <TableCell className="font-mono">{o.dueDate}</TableCell>
+                    <TableCell className="text-muted-foreground">{recurrenceLabel(o)}</TableCell>
+                    <TableCell>
+                      <UrgencyBadge dueDate={o.dueDate} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          size="icon-sm"
+                          variant="outline"
+                          onClick={() => {
+                            setEditForm(formStateFor(o));
+                            setEditError(null);
+                            setEditing(o);
+                          }}
+                          aria-label={`Edit ${o.name}`}
+                        >
+                          <Pencil />
+                        </Button>
+                        <Button
+                          size="icon-sm"
+                          variant="destructive"
+                          onClick={() => setPendingDelete(o)}
+                          aria-label={`Remove ${o.name}`}
+                        >
+                          <Trash2 />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            )}
           </Table>
         )}
       </CardContent>

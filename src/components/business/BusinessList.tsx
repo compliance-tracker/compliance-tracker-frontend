@@ -7,16 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableRowsSkeleton } from "@/components/TableRowsSkeleton";
 import type { Business } from "@/lib/types";
 
 interface BusinessListProps {
   businesses: Business[];
+  loading?: boolean;
 }
 
 type GstFilter = "all" | "registered" | "not-registered";
 type SortField = "name" | "financialYearEnd";
 
-export function BusinessList({ businesses }: BusinessListProps) {
+export function BusinessList({ businesses, loading = false }: BusinessListProps) {
   const [query, setQuery] = useState("");
   const [gstFilter, setGstFilter] = useState<GstFilter>("all");
   const [sortField, setSortField] = useState<SortField>("name");
@@ -53,7 +55,20 @@ export function BusinessList({ businesses }: BusinessListProps) {
         <CardTitle>Businesses</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {businesses.length === 0 ? (
+        {loading ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Financial year end</TableHead>
+                <TableHead>GST</TableHead>
+                <TableHead>Reminder lead</TableHead>
+                <TableHead className="text-right"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableRowsSkeleton columns={5} />
+          </Table>
+        ) : businesses.length === 0 ? (
           <p className="text-sm text-muted-foreground">No businesses yet — add one to get started.</p>
         ) : (
           <>

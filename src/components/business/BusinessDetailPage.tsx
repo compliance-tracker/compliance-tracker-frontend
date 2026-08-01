@@ -3,6 +3,7 @@ import { Link, useOutletContext, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { CustomObligationsPanel } from "@/components/business/CustomObligationsPanel";
 import { DeadlinesPanel } from "@/components/business/DeadlinesPanel";
+import { PageSkeleton } from "@/components/PageSkeleton";
 import { WorkPassesPanel } from "@/components/business/WorkPassesPanel";
 import type { ShellContext } from "@/components/shell/Shell";
 
@@ -21,7 +22,7 @@ export function BusinessDetailPage() {
   const business = businesses.find((b) => b.id === Number(id)) ?? null;
 
   if (loading) {
-    return <p className="text-sm text-muted-foreground">Loading...</p>;
+    return <PageSkeleton cards={3} />;
   }
 
   if (!business) {

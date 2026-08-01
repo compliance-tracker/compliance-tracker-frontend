@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TableRowsSkeleton } from "@/components/TableRowsSkeleton";
 import { UrgencyBadge } from "@/components/UrgencyBadge";
 import { api } from "@/lib/api";
 import { deadlineLabel } from "@/lib/urgency";
@@ -48,9 +49,7 @@ export function DeadlinesPanel({ business, refreshKey }: DeadlinesPanelProps) {
         <CardTitle>{business.name} — upcoming deadlines</CardTitle>
       </CardHeader>
       <CardContent>
-        {loading ? (
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        ) : deadlines.length === 0 ? (
+        {!loading && deadlines.length === 0 ? (
           <p className="text-sm text-muted-foreground">No deadlines computed for this business.</p>
         ) : (
           <Table>
@@ -61,19 +60,23 @@ export function DeadlinesPanel({ business, refreshKey }: DeadlinesPanelProps) {
                 <TableHead className="text-right">Urgency</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {deadlines.map((d, i) => (
-                <TableRow key={i}>
-                  <TableCell>
-                    <Badge variant="secondary">{deadlineLabel(d)}</Badge>
-                  </TableCell>
-                  <TableCell className="font-mono">{d.dueDate}</TableCell>
-                  <TableCell className="text-right">
-                    <UrgencyBadge dueDate={d.dueDate} />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
+            {loading ? (
+              <TableRowsSkeleton columns={3} />
+            ) : (
+              <TableBody>
+                {deadlines.map((d, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <Badge variant="secondary">{deadlineLabel(d)}</Badge>
+                    </TableCell>
+                    <TableCell className="font-mono">{d.dueDate}</TableCell>
+                    <TableCell className="text-right">
+                      <UrgencyBadge dueDate={d.dueDate} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            )}
           </Table>
         )}
       </CardContent>
