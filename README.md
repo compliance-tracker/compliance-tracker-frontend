@@ -62,6 +62,11 @@ check, not a replacement for it.
   (`Business`, `Deadline`, `Credentials`, `AuthResponse`) — no transformation layer between the two.
 - `src/lib/auth.ts` — stores/retrieves both the access and refresh JWTs in `localStorage`
   (survives a refresh/new tab, unlike `sessionStorage`).
+- `src/lib/csv.ts` — CSV export (issue #27), no library dependency: `toCsv(rows, columns)` builds
+  the file content (RFC 4180 escaping — a field is only quoted if it actually contains a comma,
+  quote, or newline), `downloadCsv(filename, content)` triggers a real browser download via a
+  `Blob`/object URL. Used by `BusinessList` (exports whatever's currently filtered/sorted) and
+  `DeadlinesPanel` (exports one business's deadlines, filename identifying which business).
 - `src/lib/theme.ts` — light/dark theme preference (issue #20), a plain `.dark` class on
   `<html>` (index.css's own existing convention, populated since the Harbour Ledger redesign,
   issue #59, ahead of any toggle existing), stored in `localStorage`, falling back to the OS's
@@ -109,12 +114,14 @@ check, not a replacement for it.
     (a lighter, centered single-card treatment — verification is informational-only and
     non-blocking; calls the real `POST /api/auth/verify-email` on mount using the URL's `?token=`).
   - `business/` — `BusinessesPage` (stat tiles + `BusinessList`, the list's own "View" link
-    navigates to a business's detail page), `BusinessList` (search/filter/sort, all client-side),
-    `AddBusinessDialog`/`EditBusinessPage` (name, FYE, GST status, reminder lead time 1-90 days,
-    optional incorporation date), `DeleteBusinessDialog`, `BusinessDetailPage` (`DeadlinesPanel` +
-    `WorkPassesPanel` + `CustomObligationsPanel` for one business), `WorkPassesPanel`,
-    `CustomObligationsPanel` (a business's own user-defined obligations — a one-off date, or
-    repeats every N months), `DeadlinesPanel`.
+    navigates to a business's detail page), `BusinessList` (search/filter/sort, all client-side —
+    plus a CSV export of whatever's currently visible, issue #27), `AddBusinessDialog`/
+    `EditBusinessPage` (name, FYE, GST status, reminder lead time 1-90 days, optional incorporation
+    date), `DeleteBusinessDialog`, `BusinessDetailPage` (`DeadlinesPanel` + `WorkPassesPanel` +
+    `CustomObligationsPanel` for one business), `WorkPassesPanel`, `CustomObligationsPanel` (a
+    business's own user-defined obligations — a one-off date, or repeats every N months),
+    `DeadlinesPanel` (also has its own CSV export, issue #27 — the filename identifies which
+    business it's for).
   - `calendar/` — `CalendarPage` (fetches every business's deadlines via `useAllDeadlines` and
     merges them client-side into a month grid + upcoming timeline — no combined backend endpoint
     exists).

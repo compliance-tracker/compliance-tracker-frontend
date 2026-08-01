@@ -1,9 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { BusinessList } from "./BusinessList";
+import { downloadCsv } from "@/lib/csv";
 import type { Business } from "@/lib/types";
+
+// Real toCsv (proves the actual CSV content), mocked downloadCsv (no real file/DOM download
+// mechanics to verify here - src/lib/csv.test.ts already covers those in isolation).
+vi.mock("@/lib/csv", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/csv")>();
+  return { ...actual, downloadCsv: vi.fn() };
+});
 
 const businesses: Business[] = [
   { id: 1, name: "Zebra Trading Pte Ltd", financialYearEnd: "2026-12-31", gstRegistered: true, leadTimeDays: 14, incorporationDate: null },
@@ -24,7 +32,47 @@ function rowNames() {
   return rows.map((row) => within(row).getAllByRole("cell")[0].textContent);
 }
 
+beforeEach(() => {
+  vi.mocked(downloadCsv).mockReset();
+});
+
+afterEach(() => {
+  vi.clearAllMocks();
+});
+
 describe("BusinessList", () => {
+  it("does not show an Export CSV button when there are no businesses at all", () => {
+    renderList([]);
+    expect(screen.queryByRole("button", { name: "Export CSV" })).not.toBeInTheDocument();
+  });
+
+  it("exports the currently visible (filtered) businesses, not the full unfiltered list", async () => {
+    const user = userEvent.setup();
+    renderList();
+
+    await user.type(screen.getByPlaceholderText("Search by name..."), "mango");
+    await user.click(screen.getByRole("button", { name: "Export CSV" }));
+
+    expect(downloadCsv).toHaveBeenCalledOnce();
+    const [filename, csv] = vi.mocked(downloadCsv).mock.calls[0];
+    expect(filename).toBe("businesses.csv");
+    expect(csv).toContain("Mango Consulting Pte Ltd");
+    expect(csv).not.toContain("Zebra Trading Pte Ltd");
+    expect(csv).not.toContain("Acme Cafe Pte Ltd");
+  });
+
+  it("includes GST status and reminder lead time as real Yes/No and day counts, not raw booleans", async () => {
+    const user = userEvent.setup();
+    renderList();
+
+    await user.click(screen.getByRole("button", { name: "Export CSV" }));
+
+    const csv = vi.mocked(downloadCsv).mock.calls[0][1];
+    expect(csv).toContain("Yes"); // Zebra and Mango are GST-registered
+    expect(csv).toContain("No"); // Acme is not
+    expect(csv).toContain("30"); // Acme's leadTimeDays
+  });
+
   it("shows the empty state when there are no businesses at all, with no search/filter controls", () => {
     renderList([]);
 
