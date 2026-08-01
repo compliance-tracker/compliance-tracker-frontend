@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FormError } from "@/components/FormError";
 import { api, ApiRequestError } from "@/lib/api";
+import { toast } from "sonner";
 import type { Business } from "@/lib/types";
 
 interface AddBusinessDialogProps {
@@ -44,6 +45,7 @@ export function AddBusinessDialog({ onCreated }: AddBusinessDialogProps) {
         incorporationDate: incorporationDate || null,
       });
       onCreated(created);
+      toast.success(`${created.name} added`);
       setOpen(false);
       setName("");
       setFinancialYearEnd("");

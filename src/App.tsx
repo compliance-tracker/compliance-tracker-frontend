@@ -11,6 +11,7 @@ import { NotificationsPage } from "@/components/notifications/NotificationsPage"
 import { Shell } from "@/components/shell/Shell";
 import { api, registerSessionExpiredHandler } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { toast } from "sonner";
 import type { Business } from "@/lib/types";
 
 function App() {
@@ -82,6 +83,7 @@ function App() {
     setIsAuthenticated(false);
     setBusinesses([]);
     setSessionMessage(null);
+    toast.success("Logged out");
   }
 
   if (!isAuthenticated) {

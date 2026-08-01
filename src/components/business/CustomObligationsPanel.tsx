@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api, ApiRequestError } from "@/lib/api";
+import { toast } from "sonner";
 import type { Business, CustomObligation, NewCustomObligation } from "@/lib/types";
 
 interface CustomObligationsPanelProps {
@@ -109,6 +110,7 @@ export function CustomObligationsPanel({ business, onCustomObligationsChanged }:
       const created = await api.createCustomObligation(business.id, toRequest(addForm));
       setObligations((prev) => [...prev, created]);
       onCustomObligationsChanged?.();
+      toast.success(`${created.name} added`);
       setAddDialogOpen(false);
       setAddForm(EMPTY_FORM);
     } catch (err) {
@@ -131,6 +133,7 @@ export function CustomObligationsPanel({ business, onCustomObligationsChanged }:
       const updated = await api.updateCustomObligation(business.id, editing.id, toRequest(editForm));
       setObligations((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
       onCustomObligationsChanged?.();
+      toast.success(`${updated.name} updated`);
       setEditing(null);
     } catch (err) {
       setEditError(
@@ -146,6 +149,7 @@ export function CustomObligationsPanel({ business, onCustomObligationsChanged }:
     setListError(null);
     setDeleting(true);
     const previous = obligations;
+    const removed = previous.find((o) => o.id === obligationId);
     // Optimistic removal, rolled back on failure - same pattern WorkPassesPanel already
     // established (issue #52 found and fixed a real out-of-sync bug from skipping this once).
     setObligations((prev) => prev.filter((o) => o.id !== obligationId));
@@ -153,6 +157,7 @@ export function CustomObligationsPanel({ business, onCustomObligationsChanged }:
     try {
       await api.deleteCustomObligation(business.id, obligationId);
       onCustomObligationsChanged?.();
+      toast.success(removed ? `${removed.name} removed` : "Obligation removed");
     } catch (err) {
       setObligations(previous);
       setListError(

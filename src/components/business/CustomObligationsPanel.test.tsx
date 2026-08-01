@@ -3,6 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CustomObligationsPanel } from "./CustomObligationsPanel";
 import { api } from "@/lib/api";
+import { toast } from "sonner";
 import type { Business, CustomObligation } from "@/lib/types";
 
 vi.mock("@/lib/api", async (importOriginal) => {
@@ -17,6 +18,8 @@ vi.mock("@/lib/api", async (importOriginal) => {
     },
   };
 });
+
+vi.mock("sonner", () => ({ toast: { success: vi.fn() } }));
 
 const business: Business = {
   id: 1,
@@ -35,6 +38,7 @@ beforeEach(() => {
   vi.mocked(api.createCustomObligation).mockReset();
   vi.mocked(api.updateCustomObligation).mockReset();
   vi.mocked(api.deleteCustomObligation).mockReset();
+  vi.mocked(toast.success).mockReset();
 });
 
 afterEach(() => {
@@ -154,5 +158,19 @@ describe("CustomObligationsPanel", () => {
 
     await screen.findByText("Could not remove custom obligation. Is the backend running?");
     expect(screen.getByText("Renew insurance")).toBeInTheDocument();
+  });
+});
+
+describe("CustomObligationsPanel - success toasts (issue #22)", () => {
+  it("shows a toast naming the obligation once it's actually removed", async () => {
+    vi.mocked(api.deleteCustomObligation).mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<CustomObligationsPanel business={business} />);
+
+    await screen.findByText("Renew insurance");
+    await user.click(screen.getByRole("button", { name: "Remove Renew insurance" }));
+    await user.click(screen.getByRole("button", { name: "Yes, remove" }));
+
+    await vi.waitFor(() => expect(toast.success).toHaveBeenCalledWith("Renew insurance removed"));
   });
 });

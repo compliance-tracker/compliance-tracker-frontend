@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { api, ApiRequestError } from "@/lib/api";
+import { toast } from "sonner";
 import type { Business, WorkPass } from "@/lib/types";
 
 interface WorkPassesPanelProps {
@@ -66,6 +67,7 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
       const created = await api.createWorkPass(business.id, { employeeName, expiryDate });
       setWorkPasses((prev) => [...prev, created]);
       onWorkPassesChanged?.();
+      toast.success(`Work pass added for ${created.employeeName}`);
       setDialogOpen(false);
       setEmployeeName("");
       setExpiryDate("");
@@ -81,6 +83,7 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
     setError(null);
     setDeleting(true);
     const previous = workPasses;
+    const removed = previous.find((p) => p.id === workPassId);
     // Optimistic removal - the row disappears immediately rather than waiting on the network,
     // since a delete has nothing meaningful to show while pending. Rolled back below if the
     // request actually fails, rather than leaving the UI showing a pass that's still there.
@@ -89,6 +92,7 @@ export function WorkPassesPanel({ business, onWorkPassesChanged }: WorkPassesPan
     try {
       await api.deleteWorkPass(business.id, workPassId);
       onWorkPassesChanged?.();
+      toast.success(removed ? `${removed.employeeName}'s work pass removed` : "Work pass removed");
     } catch (err) {
       setWorkPasses(previous);
       setError(err instanceof ApiRequestError ? err.message : "Could not remove work pass. Is the backend running?");

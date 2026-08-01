@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { FormError } from "@/components/FormError";
 import { api, ApiRequestError } from "@/lib/api";
+import { toast } from "sonner";
 import type { Business } from "@/lib/types";
 
 interface DeleteBusinessDialogProps {
@@ -30,6 +31,7 @@ export function DeleteBusinessDialog({ business, onDeleted }: DeleteBusinessDial
     try {
       await api.deleteBusiness(business.id);
       onDeleted(business.id);
+      toast.success(`${business.name} deleted`);
       setOpen(false);
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : "Could not delete business. Is the backend running?");

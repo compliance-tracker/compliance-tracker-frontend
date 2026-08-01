@@ -498,6 +498,23 @@ sleep, not this session) — restarted them, confirmed the backend's connection 
 on its own, and recreated the LocalStack SQS queues (their state doesn't survive a restart, an
 already-known gotcha).
 
+**#22 (toast/success feedback system) is done.** Only errors got real feedback before this (a red
+`FormError` box) — a successful action just relied on the UI visibly changing as its only
+confirmation. New `src/components/ui/sonner.tsx`, adapted by hand from shadcn's own `sonner`
+registry entry to read this app's own `theme.ts` instead of the `next-themes` package that entry
+assumes (a Next.js-only dependency this plain Vite SPA has no use for) — mounted once in
+`main.tsx`, above the router, so a toast fired from any page has somewhere to render. Swept every
+action that previously had zero success feedback: login, logout, and create/update/delete for
+businesses, work passes, and custom obligations. Deliberately *not* added to password reset/
+forgot-password/resend-verification, which already show their own persistent inline success
+message — a toast on top would just be noise. Found and fixed a small state-capture gotcha in the
+two optimistic-delete panels (`WorkPassesPanel`/`CustomObligationsPanel`): the removed row is
+already gone from state by the time a toast needs to say whose item it was, fixed by capturing the
+item itself before the optimistic filter runs. Verified live via Playwright against the real
+backend: registered, verified, logged in, created/edited/deleted a business, added/removed a work
+pass, and logged out — a real toast with the right text shown for every single one, zero console
+errors.
+
 Open (not started): #7 (deploy — depends on backend #5). No open medium/high-urgency issues
 remain on either repo as of this session.
 
