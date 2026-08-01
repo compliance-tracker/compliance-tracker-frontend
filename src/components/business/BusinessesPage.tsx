@@ -2,6 +2,7 @@ import { Building2, CheckCircle2, XCircle } from "lucide-react";
 import { useOutletContext } from "react-router-dom";
 import { AddBusinessDialog } from "@/components/business/AddBusinessDialog";
 import { BusinessList } from "@/components/business/BusinessList";
+import { ImportBusinessesDialog } from "@/components/business/ImportBusinessesDialog";
 import { StatCard, StatCardSkeleton } from "@/components/shell/StatCard";
 import type { ShellContext } from "@/components/shell/Shell";
 
@@ -21,7 +22,10 @@ export function BusinessesPage() {
             Every business you're tracking compliance deadlines for.
           </p>
         </div>
-        <AddBusinessDialog onCreated={onCreated} />
+        <div className="flex gap-2">
+          <ImportBusinessesDialog onCreated={onCreated} />
+          <AddBusinessDialog onCreated={onCreated} />
+        </div>
       </div>
 
       {/* Issue #29 - this page previously had no loading state at all (not even plain text),

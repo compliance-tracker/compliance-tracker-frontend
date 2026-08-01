@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { downloadCsv, toCsv } from "./csv";
+import { downloadCsv, parseCsv, toCsv } from "./csv";
 
 interface Row {
   name: string;
@@ -54,6 +54,50 @@ describe("toCsv", () => {
       { header: "Name", value: (r) => r.name },
     ]);
     expect(csv).toBe("Name\r\nPlain Name");
+  });
+});
+
+describe("parseCsv", () => {
+  it("parses a header row plus data rows", () => {
+    expect(parseCsv("Name,Date\r\nAlpha,2026-12-31\r\nBeta,2026-06-30")).toEqual([
+      ["Name", "Date"],
+      ["Alpha", "2026-12-31"],
+      ["Beta", "2026-06-30"],
+    ]);
+  });
+
+  it("handles a plain LF line ending, not just CRLF", () => {
+    expect(parseCsv("Name\nAlpha\nBeta")).toEqual([["Name"], ["Alpha"], ["Beta"]]);
+  });
+
+  it("unquotes a field that was quoted because it contains a comma", () => {
+    expect(parseCsv('Name\r\n"Test Cafe, Pte Ltd"')).toEqual([["Name"], ["Test Cafe, Pte Ltd"]]);
+  });
+
+  it("unescapes a doubled quote inside a quoted field", () => {
+    expect(parseCsv('Name\r\n"The ""Best"" Co"')).toEqual([["Name"], ['The "Best" Co']]);
+  });
+
+  it("keeps a newline embedded inside a quoted field as part of that one field", () => {
+    expect(parseCsv('Name\r\n"Line one\nLine two"')).toEqual([["Name"], ["Line one\nLine two"]]);
+  });
+
+  it("round-trips through toCsv - parsing what it just wrote reproduces the original rows", () => {
+    const csv = toCsv(
+      [{ name: "Test Cafe, Pte Ltd", date: 'The "Best" Co', count: 1 }],
+      [
+        { header: "Name", value: (r) => r.name },
+        { header: "Date", value: (r) => r.date },
+      ],
+    );
+    expect(parseCsv(csv)).toEqual([
+      ["Name", "Date"],
+      ["Test Cafe, Pte Ltd", 'The "Best" Co'],
+    ]);
+  });
+
+  it("does not add a spurious trailing empty row for a file ending in a newline", () => {
+    expect(parseCsv("Name\r\nAlpha\r\n")).toEqual([["Name"], ["Alpha"]]);
   });
 });
 

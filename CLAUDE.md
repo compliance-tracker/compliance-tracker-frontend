@@ -535,6 +535,21 @@ Playwright: `emulateMedia({ media: "print" })` plus full-page screenshots of bot
 confirmed via actual screenshot inspection that chrome/toasts are genuinely gone and the
 disclaimer is genuinely present.
 
+**#28 (bulk CSV import of businesses) is done.** Only one-at-a-time creation existed before this —
+the issue's own example (an accounting firm's client list) doesn't scale to typing each one in by
+hand. No new backend endpoint — each valid row from the file goes through the existing
+single-business `POST /api/businesses`, sequentially, same as typing it into `AddBusinessDialog` N
+times. New `parseCsv` in `src/lib/csv.ts` (a real RFC 4180 parser, not `line.split(",")`, which
+would break on exactly the fields `toCsv` already knows to quote) and `ImportBusinessesDialog`
+(header-matched columns so `BusinessList`'s own CSV export round-trips straight back in; a
+row that fails to parse is flagged per-row in a preview table rather than blocking the rest of the
+file; a row that fails the real backend's ACRA first-year validation shows that exact message
+inline, same `ApiRequestError` handling every other form uses). Reuses issue #22's toast system
+for the overall import summary. Verified live via Playwright against the real backend: a
+comma-containing quoted name, an invalid date rejected client-side, and a row that genuinely
+violates the real ACRA rule all handled correctly, successfully imported businesses appeared in
+the list with zero refetch.
+
 Open (not started): #7 (deploy — depends on backend #5). No open medium/high-urgency issues
 remain on either repo as of this session.
 

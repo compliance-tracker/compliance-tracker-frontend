@@ -62,11 +62,18 @@ check, not a replacement for it.
   (`Business`, `Deadline`, `Credentials`, `AuthResponse`) — no transformation layer between the two.
 - `src/lib/auth.ts` — stores/retrieves both the access and refresh JWTs in `localStorage`
   (survives a refresh/new tab, unlike `sessionStorage`).
-- `src/lib/csv.ts` — CSV export (issue #27), no library dependency: `toCsv(rows, columns)` builds
-  the file content (RFC 4180 escaping — a field is only quoted if it actually contains a comma,
-  quote, or newline), `downloadCsv(filename, content)` triggers a real browser download via a
-  `Blob`/object URL. Used by `BusinessList` (exports whatever's currently filtered/sorted) and
-  `DeadlinesPanel` (exports one business's deadlines, filename identifying which business).
+- `src/lib/csv.ts` — CSV export (issue #27) and import (issue #28), no library dependency:
+  `toCsv(rows, columns)` builds file content (RFC 4180 escaping — a field is only quoted if it
+  actually contains a comma, quote, or newline), `downloadCsv(filename, content)` triggers a real
+  browser download via a `Blob`/object URL, `parseCsv(content)` is a real RFC 4180 parser (handles
+  quoted fields, doubled-quote escaping, CRLF/LF) returning raw `string[][]` — column meaning is
+  the caller's job, same split as `toCsv`. Export used by `BusinessList` (exports whatever's
+  currently filtered/sorted) and `DeadlinesPanel` (exports one business's deadlines). Import used
+  by `ImportBusinessesDialog` — header-matched columns (Name/Financial Year End required,
+  GST Registered/Reminder Lead/Incorporation Date optional), each valid row submitted through the
+  existing single-business `POST /api/businesses` one at a time (no new backend endpoint), with
+  per-row real backend error messages shown inline rather than aborting the whole import on one
+  bad row.
 - `src/components/PrintHeader.tsx` — print-only header (issue #36), hidden on screen (Tailwind's
   `print:` variant), shown only inside `window.print()` output: report title, print date, and the
   "not compliance advice" disclaimer that would otherwise only ever exist on the login page — a
