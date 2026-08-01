@@ -10,7 +10,7 @@ import type { ShellContext } from "@/components/shell/Shell";
 // the whole dashboard. The stat tiles + business table now live here specifically, not the
 // shell, since they're about this one page, not every routed page.
 export function BusinessesPage() {
-  const { businesses, loading, onCreated } = useOutletContext<ShellContext>();
+  const { businesses, loading, onCreated, onDeleted } = useOutletContext<ShellContext>();
   const gstRegisteredCount = businesses.filter((b) => b.gstRegistered).length;
 
   return (
@@ -45,7 +45,7 @@ export function BusinessesPage() {
         </div>
       )}
 
-      <BusinessList businesses={businesses} loading={loading} />
+      <BusinessList businesses={businesses} loading={loading} onDeleted={onDeleted} />
     </div>
   );
 }

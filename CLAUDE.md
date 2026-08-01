@@ -550,6 +550,24 @@ comma-containing quoted name, an invalid date rejected client-side, and a row th
 violates the real ACRA rule all handled correctly, successfully imported businesses appeared in
 the list with zero refetch.
 
+**#35 (bulk select + bulk actions on the business list) is done.** Every action before this worked
+one business at a time. Selection is a `Set<number>` of ids (survives a search/sort/filter
+re-render); select-all only touches currently-visible (filtered) rows, with a genuine three-way
+header checkbox state (all/some/none) via Radix's `checked="indeterminate"`. A bulk action bar
+("N selected", "Export selected", "Delete selected") appears only once something's selected. Bulk
+delete reuses two already-established patterns rather than inventing new ones: sequential API
+calls (same reasoning as `ImportBusinessesDialog`'s bulk create, #28) and a Cancel/"Yes, delete N"
+confirmation dialog matching `DeleteBusinessDialog`'s own shape; a partial failure shows the real
+per-item backend error via a toast (#22) alongside a partial-success summary. Found and ruled out
+a false alarm during live verification, not a real bug: a `psql` check appeared to show a
+non-selected business deleted too, which turned out to be querying an AES-GCM-encrypted column
+(`business.name`, issue #63) with a plaintext `LIKE` that could never match anything regardless of
+whether the row existed — the real proof came from intercepting the actual network requests, which
+showed exactly the two selected ids' `DELETE` calls and nothing else. Verified live via Playwright:
+created three businesses, selected two, exported just those two, confirmed Cancel doesn't delete,
+confirmed the real delete removes exactly the two selected and leaves the third, zero console
+errors.
+
 Open (not started): #7 (deploy — depends on backend #5). No open medium/high-urgency issues
 remain on either repo as of this session.
 
