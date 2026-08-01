@@ -38,7 +38,7 @@ export function BusinessDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="border-b border-border pb-4">
+      <div className="border-b border-border pb-4 print:hidden">
         <h1 className="font-serif text-2xl font-semibold tracking-tight">{business.name}</h1>
         <p className="text-sm text-muted-foreground">
           Employment passes, custom obligations, and upcoming compliance deadlines for this business.
@@ -46,11 +46,17 @@ export function BusinessDetailPage() {
       </div>
 
       <DeadlinesPanel business={business} refreshKey={deadlinesRefreshKey} />
-      <WorkPassesPanel business={business} onWorkPassesChanged={() => setDeadlinesRefreshKey((k) => k + 1)} />
-      <CustomObligationsPanel
-        business={business}
-        onCustomObligationsChanged={() => setDeadlinesRefreshKey((k) => k + 1)}
-      />
+      {/* Issue #36 - only the deadlines list is meant to be a printable document; work passes
+          and custom obligations stay screen-only, hidden here at the page-composition level
+          rather than inside the panels themselves, since neither is a reusable "this shouldn't
+          print" fact about WorkPassesPanel/CustomObligationsPanel in general. */}
+      <div className="space-y-6 print:hidden">
+        <WorkPassesPanel business={business} onWorkPassesChanged={() => setDeadlinesRefreshKey((k) => k + 1)} />
+        <CustomObligationsPanel
+          business={business}
+          onCustomObligationsChanged={() => setDeadlinesRefreshKey((k) => k + 1)}
+        />
+      </div>
     </div>
   );
 }

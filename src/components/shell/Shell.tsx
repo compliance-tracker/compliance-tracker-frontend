@@ -49,13 +49,15 @@ export function Shell({ context }: ShellProps) {
   }, [pathname]);
 
   return (
-    <div className="relative min-h-screen bg-background lg:grid lg:grid-cols-[220px_1fr]">
-      <AmbientBackground tint={tintForPath(pathname)} />
+    <div className="relative min-h-screen bg-background lg:grid lg:grid-cols-[220px_1fr] print:block">
+      <div className="print:hidden">
+        <AmbientBackground tint={tintForPath(pathname)} />
+      </div>
       <BrowserNotificationWatcher businesses={context.businesses} />
 
       {/* Mobile topbar - the nav rail's own brand mark, shown here instead since the rail itself
           is off-canvas by default below lg. */}
-      <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-background px-4 py-3 lg:hidden">
+      <div className="sticky top-0 z-20 flex items-center gap-3 border-b border-border bg-background px-4 py-3 lg:hidden print:hidden">
         <button
           type="button"
           onClick={() => setMobileNavOpen(true)}
@@ -79,19 +81,19 @@ export function Shell({ context }: ShellProps) {
           aria-hidden
           data-testid="mobile-nav-backdrop"
           onClick={() => setMobileNavOpen(false)}
-          className="fixed inset-0 z-40 bg-black/45 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/45 lg:hidden print:hidden"
         />
       )}
 
       <NavRail
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-[260px] max-w-[82vw] transition-transform duration-200 ease-in-out",
+          "fixed inset-y-0 left-0 z-50 w-[260px] max-w-[82vw] transition-transform duration-200 ease-in-out print:hidden",
           "lg:static lg:z-auto lg:w-auto lg:max-w-none lg:translate-x-0 lg:transition-none",
           mobileNavOpen ? "translate-x-0" : "-translate-x-full",
         )}
       />
 
-      <main className="relative z-10 max-w-[1080px] space-y-4 p-8">
+      <main className="relative z-10 max-w-[1080px] space-y-4 p-8 print:max-w-none print:p-0">
         {context.error && (
           <p
             role="alert"

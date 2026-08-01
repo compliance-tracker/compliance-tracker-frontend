@@ -1,7 +1,8 @@
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, Printer } from "lucide-react";
 import { Link, useOutletContext } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PrintHeader } from "@/components/PrintHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UrgencyBadge } from "@/components/UrgencyBadge";
 import { cn } from "@/lib/utils";
@@ -59,8 +60,10 @@ export function CalendarPage() {
         <p className="text-sm text-muted-foreground">Every business's upcoming obligations, in one place.</p>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
-        <Card className="shadow-sm">
+      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr] print:grid-cols-1">
+        {/* Not printed - a grid of colored/shaped dots doesn't reproduce meaningfully on paper,
+            and "print-friendly deadlines view" (issue #36) means the list below, not this. */}
+        <Card className="shadow-sm print:hidden">
           <CardHeader>
             <CardTitle>
               {MONTH_LABELS[month]} {year}
@@ -71,11 +74,17 @@ export function CalendarPage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-sm">
-          <CardHeader>
+        <Card className="shadow-sm print:border-0 print:shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 print:hidden">
             <CardTitle>Upcoming, all businesses</CardTitle>
+            {upcoming.length > 0 && (
+              <Button variant="outline" size="sm" onClick={() => window.print()}>
+                <Printer /> Print
+              </Button>
+            )}
           </CardHeader>
           <CardContent>
+            <PrintHeader title="Upcoming deadlines — all businesses" />
             {isLoading ? (
               <div className="divide-y divide-border">
                 {Array.from({ length: 4 }, (_, i) => (

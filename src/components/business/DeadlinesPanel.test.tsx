@@ -75,3 +75,24 @@ describe("DeadlinesPanel - CSV export (issue #27)", () => {
     expect(filename).toMatch(/^[a-z0-9-]+-deadlines\.csv$/);
   });
 });
+
+describe("DeadlinesPanel - print-friendly view (issue #36)", () => {
+  it("does not show a Print button when there are no deadlines", async () => {
+    vi.mocked(api.getDeadlines).mockResolvedValue([]);
+    render(<DeadlinesPanel business={business} />);
+
+    await screen.findByText("No deadlines computed for this business.");
+    expect(screen.queryByRole("button", { name: "Print" })).not.toBeInTheDocument();
+  });
+
+  it("Print triggers window.print()", async () => {
+    const printSpy = vi.spyOn(window, "print").mockImplementation(() => {});
+    const user = userEvent.setup();
+    render(<DeadlinesPanel business={business} />);
+
+    await screen.findByText("2026-10-30");
+    await user.click(screen.getByRole("button", { name: "Print" }));
+
+    expect(printSpy).toHaveBeenCalledOnce();
+  });
+});

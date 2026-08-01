@@ -516,6 +516,25 @@ backend: registered, verified, logged in, created/edited/deleted a business, add
 pass, and logged out — a real toast with the right text shown for every single one, zero console
 errors.
 
+**#36 (print-friendly deadlines view) is done.** No print stylesheet existed before this — printing
+any page as-is would have printed the dark nav rail, the ambient background, every action button,
+and whatever the active theme happened to be. Tailwind's `print:` variant on existing markup
+(`Shell.tsx` hides the nav rail/topbar/ambient background, `sonner.tsx`'s `Toaster` too — found
+live via a Playwright screenshot that a lingering toast otherwise floats over the printed page),
+plus one small `@media print` block in `index.css` forcing plain black-on-white regardless of the
+active theme, since a printout isn't a themed surface. New `src/components/PrintHeader.tsx`
+(hidden on screen, shown only in print output — title, print date, and the "not compliance advice"
+disclaimer that would otherwise only ever appear on the login page) used by `DeadlinesPanel` and
+`CalendarPage`. Scoped tightly to what the issue actually asks for: `BusinessDetailPage` hides
+`WorkPassesPanel`/`CustomObligationsPanel` on print (only the deadlines list is a printable
+document — decided at the page-composition level, not baked into either panel), and Calendar's
+month-grid card (colored dots don't reproduce on paper) is print-hidden too, leaving only the
+"Upcoming, all businesses" list, expanded to full width. A "Print" button (`window.print()`) in
+each panel's header, matching the existing "Export CSV" button's placement. Verified live via
+Playwright: `emulateMedia({ media: "print" })` plus full-page screenshots of both print views,
+confirmed via actual screenshot inspection that chrome/toasts are genuinely gone and the
+disclaimer is genuinely present.
+
 Open (not started): #7 (deploy — depends on backend #5). No open medium/high-urgency issues
 remain on either repo as of this session.
 

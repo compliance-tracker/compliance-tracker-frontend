@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Outlet, Route, Routes } from "react-router-dom";
 import { CalendarPage } from "./CalendarPage";
 import { api } from "@/lib/api";
@@ -88,5 +89,26 @@ describe("CalendarPage", () => {
     // Beta's Aug deadline is earlier than Alpha's Dec one - sorted ascending by date.
     const names = screen.getAllByText(/Pte Ltd/).map((el) => el.textContent);
     expect(names).toEqual(["Beta Pte Ltd", "Alpha Pte Ltd"]);
+  });
+});
+
+describe("CalendarPage - print-friendly view (issue #36)", () => {
+  it("does not show a Print button when there's nothing to print", () => {
+    renderWithContext([]);
+    expect(screen.queryByRole("button", { name: "Print" })).not.toBeInTheDocument();
+  });
+
+  it("Print triggers window.print() once there's something to print", async () => {
+    vi.mocked(api.getDeadlines).mockResolvedValue([
+      { obligationType: "ACRA_ANNUAL_RETURN", dueDate: "2026-12-31" },
+    ]);
+    const printSpy = vi.spyOn(window, "print").mockImplementation(() => {});
+    const user = userEvent.setup();
+    renderWithContext([businessA]);
+
+    await screen.findByText("Alpha Pte Ltd");
+    await user.click(screen.getByRole("button", { name: "Print" }));
+
+    expect(printSpy).toHaveBeenCalledOnce();
   });
 });

@@ -195,3 +195,20 @@
 @keyframes sounding-rotate {
   to { transform: rotate(360deg); }
 }
+
+/* Issue #36 - a print-friendly deadlines view. Forces plain black-on-white regardless of the
+   active theme (dark mode's own tokens would otherwise print as a near-black page burning
+   through a lot of ink/toner for no benefit on paper) - print output isn't a themed surface, it's
+   a document. Individual components hide the app chrome that shouldn't appear on paper at all
+   (nav rail, ambient background, action buttons) via Tailwind's print: variant instead of a
+   blanket "hide everything except X" rule here, since what's printable differs per page. */
+@media print {
+  * {
+    color: black !important;
+    background: white !important;
+    box-shadow: none !important;
+  }
+  @page {
+    margin: 1.5cm;
+  }
+}
