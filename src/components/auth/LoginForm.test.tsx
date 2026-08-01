@@ -5,7 +5,10 @@ import { MemoryRouter } from "react-router-dom";
 import { LoginForm } from "./LoginForm";
 import { api, ApiRequestError } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { toast } from "sonner";
 import type { ComponentProps } from "react";
+
+vi.mock("sonner", () => ({ toast: { success: vi.fn() } }));
 
 // LoginForm renders a react-router <Link> (the new "Forgot password?" link, issue #55), which
 // throws without a Router context above it - MemoryRouter is the standard test-only stand-in,
@@ -37,6 +40,7 @@ beforeEach(() => {
   vi.mocked(api.login).mockReset();
   vi.mocked(api.register).mockReset();
   vi.mocked(api.resendVerification).mockReset();
+  vi.mocked(toast.success).mockReset();
 });
 
 afterEach(() => {
@@ -95,6 +99,7 @@ describe("LoginForm", () => {
     expect(auth.getToken()).toBe("a-real-token");
     expect(auth.getRefreshToken()).toBe("a-real-refresh-token");
     expect(onAuthenticated).toHaveBeenCalledOnce();
+    expect(toast.success).toHaveBeenCalledWith("Logged in");
   });
 
   it("on failed login, shows an error and does not call onAuthenticated", async () => {

@@ -26,7 +26,10 @@ test("adding a business shows it in the list without a page refetch", async ({ p
   await page.getByLabel("Financial year end").fill("2026-12-31");
   await page.getByRole("button", { name: "Add business" }).last().click();
 
-  await expect(page.getByText("Playwright Test Co")).toBeVisible();
+  // Scoped to the table cell specifically, not a plain getByText - issue #22's new "added"
+  // success toast also contains this business's name ("Playwright Test Co added"), which makes
+  // an unscoped text match ambiguous between the real list row and the transient toast.
+  await expect(page.getByRole("cell", { name: "Playwright Test Co", exact: true })).toBeVisible();
 });
 
 test("searching the business list filters by name client-side", async ({ page }) => {

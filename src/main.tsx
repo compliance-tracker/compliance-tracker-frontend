@@ -7,6 +7,7 @@ import { ErrorBoundary } from './components/shell/ErrorBoundary.tsx'
 import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage.tsx'
 import { ResetPasswordPage } from './components/auth/ResetPasswordPage.tsx'
 import { VerifyEmailPage } from './components/auth/VerifyEmailPage.tsx'
+import { Toaster } from './components/ui/sonner.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -22,6 +23,10 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/*" element={<App />} />
         </Routes>
       </BrowserRouter>
+      {/* Issue #22 - mounted once at the very top so a toast fired from any page (authenticated
+          or not - e.g. a password-reset success) has somewhere to render, rather than needing
+          its own instance nested under every route. */}
+      <Toaster position="bottom-right" />
     </ErrorBoundary>
   </StrictMode>,
 )

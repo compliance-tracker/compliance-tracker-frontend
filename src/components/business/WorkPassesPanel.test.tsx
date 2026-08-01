@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { WorkPassesPanel } from "./WorkPassesPanel";
 import { api } from "@/lib/api";
+import { toast } from "sonner";
 import type { Business, WorkPass } from "@/lib/types";
 
 vi.mock("@/lib/api", async (importOriginal) => {
@@ -16,6 +17,8 @@ vi.mock("@/lib/api", async (importOriginal) => {
     },
   };
 });
+
+vi.mock("sonner", () => ({ toast: { success: vi.fn() } }));
 
 const business: Business = {
   id: 1,
@@ -31,6 +34,7 @@ const workPass: WorkPass = { id: 1, employeeName: "Jane Doe", expiryDate: "2026-
 beforeEach(() => {
   vi.mocked(api.getWorkPasses).mockReset().mockResolvedValue([workPass]);
   vi.mocked(api.deleteWorkPass).mockReset();
+  vi.mocked(toast.success).mockReset();
 });
 
 afterEach(() => {
@@ -74,6 +78,20 @@ describe("WorkPassesPanel - remove confirmation (issue #24)", () => {
     await user.click(screen.getByRole("button", { name: "Yes, remove" }));
 
     expect(api.deleteWorkPass).toHaveBeenCalledWith(business.id, workPass.id);
+  });
+});
+
+describe("WorkPassesPanel - success toasts (issue #22)", () => {
+  it("shows a toast naming the employee once a work pass is actually removed", async () => {
+    vi.mocked(api.deleteWorkPass).mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<WorkPassesPanel business={business} />);
+
+    await screen.findByText("Jane Doe");
+    await user.click(screen.getByRole("button", { name: /Remove Jane Doe/ }));
+    await user.click(screen.getByRole("button", { name: "Yes, remove" }));
+
+    await vi.waitFor(() => expect(toast.success).toHaveBeenCalledWith("Jane Doe's work pass removed"));
   });
 });
 

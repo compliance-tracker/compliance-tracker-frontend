@@ -67,6 +67,15 @@ check, not a replacement for it.
   quote, or newline), `downloadCsv(filename, content)` triggers a real browser download via a
   `Blob`/object URL. Used by `BusinessList` (exports whatever's currently filtered/sorted) and
   `DeadlinesPanel` (exports one business's deadlines, filename identifying which business).
+- `src/components/ui/sonner.tsx` — success toast system (issue #22), a thin wrapper around the
+  `sonner` library adapted to read this app's own `theme.ts` instead of the `next-themes` package
+  its shadcn registry entry assumes (a Next.js-only dependency this is a plain Vite SPA has no use
+  for). Mounted once in `main.tsx`, above every route, so a toast fired from any page — logged out
+  or in — has somewhere to render. Fired from every action that previously had no confirmation
+  beyond the UI just updating: login, logout, creating/updating/deleting a business, adding/
+  removing a work pass, adding/editing/removing a custom obligation. Deliberately *not* added to
+  password reset/forgot-password/email-resend, which already show their own persistent inline
+  success message — a toast there would just duplicate it.
 - `src/lib/theme.ts` — light/dark theme preference (issue #20), a plain `.dark` class on
   `<html>` (index.css's own existing convention, populated since the Harbour Ledger redesign,
   issue #59, ahead of any toggle existing), stored in `localStorage`, falling back to the OS's

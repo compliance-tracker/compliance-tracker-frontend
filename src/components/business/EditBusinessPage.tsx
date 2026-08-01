@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useOutletContext, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -83,6 +84,7 @@ function EditBusinessForm({ loading, business, onUpdated, onDeleted }: EditBusin
         incorporationDate: incorporationDate || null,
       });
       onUpdated(updated);
+      toast.success(`${updated.name} updated`);
       navigate(`/businesses/${business.id}`);
     } catch (err) {
       setError(err instanceof ApiRequestError ? err.message : "Could not update business. Is the backend running?");

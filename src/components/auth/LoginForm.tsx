@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api, ApiRequestError } from "@/lib/api";
 import { auth } from "@/lib/auth";
+import { toast } from "sonner";
 
 interface LoginFormProps {
   onAuthenticated: () => void;
@@ -67,6 +68,7 @@ export function LoginForm({ onAuthenticated, message }: LoginFormProps) {
       if (mode === "login") {
         const response = await api.login({ email, password });
         auth.setTokens(response.token, response.refreshToken);
+        toast.success("Logged in");
         onAuthenticated();
       } else {
         const response = await api.register({ email, password });
