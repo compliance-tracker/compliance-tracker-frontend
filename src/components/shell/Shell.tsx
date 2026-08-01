@@ -50,9 +50,7 @@ export function Shell({ context }: ShellProps) {
 
   return (
     <div className="relative min-h-screen bg-background lg:grid lg:grid-cols-[220px_1fr] print:block">
-      <div className="print:hidden">
-        <AmbientBackground tint={tintForPath(pathname)} />
-      </div>
+      <AmbientBackground tint={tintForPath(pathname)} className="print:hidden" />
       <BrowserNotificationWatcher businesses={context.businesses} />
 
       {/* Mobile topbar - the nav rail's own brand mark, shown here instead since the rail itself

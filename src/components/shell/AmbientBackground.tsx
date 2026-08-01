@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 export type AmbientTint = "teal" | "brass" | "brick";
 
 // Tailwind class names, not raw color values, so each tint's rings/sweep pick up the actual
@@ -11,6 +13,12 @@ const TINT_VARS: Record<AmbientTint, string> = {
 
 interface AmbientBackgroundProps {
   tint?: AmbientTint;
+  // Issue #36 - print:hidden has to land on this component's own root, not a wrapping <div>
+  // around it. This root is `fixed` (already out of normal document/grid flow, at every
+  // viewport), but a non-fixed wrapper div is not - Shell's grid (`lg:grid-cols-[220px_1fr]`)
+  // would treat that wrapper as a real grid item and shift every other child over by one
+  // column, which is exactly what happened live before this prop existed.
+  className?: string;
 }
 
 // The "depth-sounding" motif from the Harbour Ledger design (issue #59) - concentric rings plus
@@ -20,11 +28,11 @@ interface AmbientBackgroundProps {
 // the business detail/edit pages, brick-red on Calendar - so navigating actually feels
 // different instead of one static wallpaper glued behind every screen. Deferred from #59 until
 // real routes existed to know "which section am I on."
-export function AmbientBackground({ tint = "teal" }: AmbientBackgroundProps) {
+export function AmbientBackground({ tint = "teal", className }: AmbientBackgroundProps) {
   const color = TINT_VARS[tint];
 
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+    <div aria-hidden className={cn("pointer-events-none fixed inset-0 z-0 overflow-hidden", className)}>
       <div
         className="absolute -top-56 -right-56 h-[640px] w-[640px] rounded-full opacity-50 motion-safe:animate-[sounding-breathe_9s_ease-in-out_infinite]"
         style={{
