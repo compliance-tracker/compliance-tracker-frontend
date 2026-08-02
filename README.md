@@ -19,6 +19,9 @@ work pass renewals).
 `/reset-password?token=...` — issue #55); everything else is still a single component tree driven
 by `useState`/`useEffect`, no state management library needed yet.
 
+The app is installable as a PWA (issue #31) — a web app manifest plus a hand-rolled service
+worker (see `public/sw.js` in Project structure below), production builds only.
+
 ## Running locally
 
 Requires the backend running on `http://localhost:8081` (see the
@@ -58,6 +61,21 @@ check, not a replacement for it.
 
 ## Project structure
 
+- `public/manifest.webmanifest` / `public/sw.js` / `src/lib/registerServiceWorker.ts` — PWA
+  support (issue #31). The manifest (name, icons, `display: "standalone"`, `start_url:
+  "/businesses"`) and a registered service worker are the two things a browser actually checks
+  before offering to install the app. `sw.js` is hand-written, not a plugin (`vite-plugin-pwa`
+  wasn't worth the dependency for something this small) — network-first, falling back to a cached
+  response only on a real network failure, and it deliberately never caches `/api/*` (or any
+  non-`GET`) request, since serving a stale cached compliance deadline would be actively wrong,
+  not just stale UI. `registerServiceWorker()` only ever registers in a production build
+  (`import.meta.env.PROD`, passed as an injectable parameter so a test can exercise both branches
+  without needing to stub Vite's own build-time env) — registering in dev would fight Vite's dev
+  server/HMR for control of every request, a known footgun. Icons live in `public/icons/`
+  (192/512/a maskable 512, generated from source SVGs in the top-level `icon-sources/` directory
+  — kept outside `public/` deliberately so the source files themselves don't get bundled into
+  `dist/`) — the maskable variant uses a full-bleed square background with the glyph scaled into
+  roughly the center 60% of the canvas, so OS icon masks (circle/squircle) don't clip it.
 - `src/lib/types.ts` — TypeScript types mirroring the backend's JSON shapes exactly
   (`Business`, `Deadline`, `Credentials`, `AuthResponse`) — no transformation layer between the two.
 - `src/lib/auth.ts` — stores/retrieves both the access and refresh JWTs in `localStorage`
@@ -214,6 +232,10 @@ or password." **The Harbour Ledger redesign is now fully complete**: design toke
 routed pages (including an off-canvas mobile drawer), Calendar, Account, Notifications, and the
 auth pages all match the mockup — every page was deliberately deferred rather than built with
 invented data when its backend support didn't exist yet (Notifications waited on backend issue
-#114), and each landed for real once that support shipped. See
+#114), and each landed for real once that support shipped. The app is now installable as a PWA
+(issue #31) — a web app manifest and a service worker caching the app shell (never `/api/*`) so a
+returning visit still loads offline, verified live against a real production build (manifest
+validity, icon resolution, service worker reaching "activated," and a genuine offline reload
+still rendering the app). See
 [issues on the frontend repo](https://github.com/compliance-tracker/compliance-tracker-frontend/issues)
 for current progress.
