@@ -584,7 +584,28 @@ via Playwright: computed styles before/after, a full-page screenshot at the same
 original bug report used, and a re-check that print media still correctly hides both the ambient
 background and nav rail (the original #36 feature untouched).
 
-Open (not started): #7 (deploy — depends on backend #5). No open medium/high-urgency issues
+**#31 (PWA support) is done.** A web app manifest (`public/manifest.webmanifest`) plus a
+hand-written service worker (`public/sw.js`, ~30 lines — considered `vite-plugin-pwa` first,
+skipped it since this app's real caching need is narrow enough that writing the three lifecycle
+events directly was less surface area than understanding a plugin's generated Workbox config) are
+the two things a browser checks before offering to install the app. The service worker is
+network-first-falling-back-to-cache for the app shell only — it deliberately never caches
+`/api/*` or any non-`GET` request, since serving a stale cached compliance deadline would be a
+correctness bug, not just stale styling. Registration (`src/lib/registerServiceWorker.ts`) is
+PROD-only (`import.meta.env.PROD`, passed as an injectable parameter for testability) — a service
+worker registered under `vite`'s dev server would fight Vite's own HMR for control of every
+request. Icons (192/512/a maskable 512) are generated from source SVGs kept in a new top-level
+`icon-sources/` directory, not `public/`, so the sources themselves don't ship into `dist/`; the
+maskable icon uses a full-bleed background with the glyph scaled into the center ~60% of the
+canvas so OS icon masks don't clip it. See NOTES.md §4an for the full write-up including the
+`vite-plugin-pwa` trade-off and the maskable-icon safe-zone math. Verified live against a real
+production build (`vite build` + `vite preview`, since service worker behavior is meaningless
+under a dev server or jsdom): manifest validity, all three icons resolving, the service worker
+reaching `state: "activated"`, and — the real proof it works, not just that the files exist — a
+genuine offline reload (`page.context().setOffline(true)`) still rendering the app shell from
+cache.
+
+Open (not started): #7 (deploy — depends on backend #5). No other open medium/high-urgency issues
 remain on either repo as of this session.
 
 See `README.md` and GitHub issues for full detail; don't duplicate that detail here.

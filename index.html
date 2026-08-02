@@ -5,6 +5,14 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Compliance Tracker</title>
+    <!-- Issue #31 - PWA installability. The manifest + a registered service worker
+         (src/lib/registerServiceWorker.ts) are the two real requirements a browser checks
+         before offering to install this app; apple-touch-icon covers iOS home-screen add,
+         which doesn't read the manifest's icons array at all. theme-color matches the
+         manifest's own value - the one fixed "harbour" navy this app's brand never theme-swaps. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <meta name="theme-color" content="#071f20" />
     <!-- Issue #20 - applies the .dark class before React (and its own first paint) ever runs,
          so a returning user with dark mode chosen doesn't see a flash of the light theme first.
          Deliberately plain JS, not a src/lib/theme.ts import - this has to run synchronously,

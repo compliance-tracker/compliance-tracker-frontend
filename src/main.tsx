@@ -8,6 +8,9 @@ import { ForgotPasswordPage } from './components/auth/ForgotPasswordPage.tsx'
 import { ResetPasswordPage } from './components/auth/ResetPasswordPage.tsx'
 import { VerifyEmailPage } from './components/auth/VerifyEmailPage.tsx'
 import { Toaster } from './components/ui/sonner.tsx'
+import { registerServiceWorker } from './lib/registerServiceWorker.ts'
+
+registerServiceWorker()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
